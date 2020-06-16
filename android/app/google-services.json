@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "841700139674",
+    "firebase_url": "https://guesture-64bda.firebaseio.com",
+    "project_id": "guesture-64bda",
+    "storage_bucket": "guesture-64bda.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:841700139674:android:6aff5df31b2b3aa039b523",
+        "android_client_info": {
+          "package_name": "com.santhoshivan.guesture"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "841700139674-gppticnc7hr7vi2tqm4p4uv4ta6pu4hg.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA2gi1NBcLxxzutBOE_IGsFtPGV7HxPzcg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "841700139674-gppticnc7hr7vi2tqm4p4uv4ta6pu4hg.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
