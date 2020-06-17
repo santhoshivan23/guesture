@@ -39,11 +39,11 @@ class _EventOverviewScreenState extends State<EventOverviewScreen> {
     _menuPositionController.absolutePosition = _pageController.page;
   }
 
-  void _selectPage(int index) {
-    setState(() {
-      _selectedPageIndex = index;
-    });
-  }
+  // void _selectPage(int index) {
+  //   setState(() {
+  //     _selectedPageIndex = index;
+  //   });
+  // }
 
   void checkUserDragging(ScrollNotification scrollNotification) {
     if (scrollNotification is UserScrollNotification &&

@@ -9,12 +9,7 @@ class GuestureDB  {
  
     
   
-
-  
-
   static Future<void> addEvent(Event newEvent) async {
-    newEvent.guests = [];
-    newEvent.transactions = [];
    
     await Firestore.instance.collection('events').document(newEvent.eventID).setData({
       'uid': newEvent.uid,

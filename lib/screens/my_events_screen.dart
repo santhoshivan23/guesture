@@ -7,14 +7,11 @@ import 'package:guesture/providers/auth.dart';
 import 'package:guesture/screens/add_event_screen.dart';
 import 'package:guesture/screens/manage_standard.dart';
 import 'package:guesture/widgets/event_tile.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MyEventsScreen extends StatefulWidget {
   static const routeName = '/my-events';
-
-  final GUser gUser;
-
-  MyEventsScreen({this.gUser});
 
   @override
   _MyEventsScreenState createState() => _MyEventsScreenState();
@@ -24,12 +21,16 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
   var _filterindex = 0;
   @override
   Widget build(BuildContext context) {
+    final GUser gUser = Provider.of<GUser>(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Events'),
         flexibleSpace: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(colors: [Colors.deepPurple, Colors.deepPurple.withOpacity(0.5)]),
+            gradient: LinearGradient(colors: [
+              Colors.deepPurple,
+              Colors.deepPurple.withOpacity(0.5)
+            ]),
           ),
         ),
         centerTitle: true,
@@ -60,13 +61,13 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
           )
         ],
       ),
-      drawer: GuestureDrawer(gUser: widget.gUser),
+      drawer: GuestureDrawer(gUser: gUser),
       body: Padding(
         padding: const EdgeInsets.symmetric(vertical: 15.0),
         child: StreamBuilder(
           stream: Firestore.instance
               .collection('events')
-              .where('uid', isEqualTo: widget.gUser.uid)
+              .where('uid', isEqualTo: gUser.uid)
               .snapshots(),
           builder: (ctx, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting)
@@ -103,7 +104,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                             child: Text('You don\'t have any upcoming events'),
                           )
                         : Center(
-                            child: Text(widget.gUser.isAdmin
+                            child: Text(gUser.isAdmin
                                 ? 'You don\'t have any events. Start Organizing!'
                                 : 'Your administrator hasn\'t created any event.'),
                           )
@@ -115,22 +116,21 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                       eventLocation: eventsData[index].location,
                       eventName: eventsData[index].eventName,
                       startDate: eventsData[index].startDate,
-                      isAdmin: widget.gUser.isAdmin,
+                      isAdmin: gUser.isAdmin,
                     ),
                   );
           },
         ),
       ),
-      floatingActionButton: !widget.gUser.isAdmin
+      floatingActionButton: !gUser.isAdmin
           ? null
           : FloatingActionButton(
               backgroundColor: Colors.deepPurple,
               child: Icon(Icons.add),
               onPressed: () {
-                Navigator.of(context).pushNamed(AddEventScreen.routeName,
-                    arguments: widget.gUser);
-              },
-            ),
+                Navigator.of(context)
+                    .pushNamed(AddEventScreen.routeName, arguments: gUser);
+              }),
     );
   }
 }
@@ -179,8 +179,8 @@ class GuestureDrawer extends StatelessWidget {
                 child: ListTile(
                   onTap: () {
                     Navigator.of(context).pop();
-                    Navigator.of(context)
-                        .pushNamed(ManageStandard.routeName, arguments: gUser);
+                    // Navigator.of(context)
+                    //     .pushNamed(ManageStandard.routeName, arguments: gUser);
                   },
                   leading: Icon(Icons.dashboard, color: Colors.green),
                   title: Text(

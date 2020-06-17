@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:guesture/models/g_user.dart';
 import 'package:guesture/providers/auth.dart';
 import 'package:guesture/screens/add_event_screen.dart';
 import 'package:guesture/screens/auth_screen.dart';
@@ -7,7 +6,6 @@ import 'package:guesture/screens/cash_confirm_screen.dart';
 import 'package:guesture/screens/event_overview_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
-import 'package:guesture/screens/manage_standard.dart';
 import 'package:guesture/screens/my_events_screen.dart';
 import 'package:guesture/screens/new_reservation_screen.dart';
 import 'package:guesture/screens/qr_screen.dart';
@@ -34,8 +32,7 @@ class MyApp extends StatelessWidget {
         ),
         home: Wrapper(),
         routes: {
-          
-          ManageStandard.routeName: (ctx) => ManageStandard(),
+          // ManageStandard.routeName: (ctx) => ManageStandard(),
           MyEventsScreen.routeName: (ctx) => MyEventsScreen(),
           AddEventScreen.routeName: (ctx) => AddEventScreen(),
           EventOverviewScreen.routeName: (ctx) => EventOverviewScreen(),
@@ -51,19 +48,23 @@ class MyApp extends StatelessWidget {
 class Wrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: Provider.of<Future<GUser>>(context),
+    return StreamBuilder(
+      stream: Auth().authenticatedState,
       builder: (ctx, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Scaffold(
             backgroundColor: Colors.black,
             body: Center(
               child: FittedBox(
-                              child: Column(
+                child: Column(
                   children: <Widget>[
                     Padding(
                       padding: const EdgeInsets.all(8.0),
-                      child: Text('G',style: GoogleFonts.pacifico(color:Colors.white,fontSize: 30),),
+                      child: Text(
+                        'G',
+                        style: GoogleFonts.pacifico(
+                            color: Colors.white, fontSize: 30),
+                      ),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
@@ -78,9 +79,7 @@ class Wrapper extends StatelessWidget {
           );
         }
         if (!snapshot.hasData) return AuthScreen();
-        return MyEventsScreen(
-          gUser: snapshot.data,
-        );
+        return MyEventsScreen();
       },
     );
   }
