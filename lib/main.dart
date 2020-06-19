@@ -6,6 +6,7 @@ import 'package:guesture/screens/cash_confirm_screen.dart';
 import 'package:guesture/screens/event_overview_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/services.dart';
+import 'package:guesture/screens/invite_members_page.dart';
 import 'package:guesture/screens/my_events_screen.dart';
 import 'package:guesture/screens/new_reservation_screen.dart';
 import 'package:guesture/screens/qr_screen.dart';
@@ -39,6 +40,7 @@ class MyApp extends StatelessWidget {
           NewReservationScreen.routeName: (ctx) => NewReservationScreen(),
           CashConfirmScreen.routeName: (ctx) => CashConfirmScreen(),
           QRScreen.routeName: (ctx) => QRScreen(),
+          InviteMembersPage.routeName : (ctx) => InviteMembersPage(),
         },
       ),
     );
@@ -79,7 +81,7 @@ class Wrapper extends StatelessWidget {
           );
         }
         if (!snapshot.hasData) return AuthScreen();
-        return MyEventsScreen();
+        return MyEventsScreen(gUser: snapshot.data,);
       },
     );
   }

@@ -46,7 +46,7 @@ class AuthCard extends StatefulWidget {
 
 class _AuthCardState extends State<AuthCard> {
   void initState() {
-    checkConnectivity();
+    checkConnectivityAddListener();
 
     super.initState();
   }
@@ -62,7 +62,7 @@ class _AuthCardState extends State<AuthCard> {
     super.dispose();
   }
 
-  void showNetworkSnackbar(bool isConnected) {
+  void showNetworkSnackBar(bool isConnected) {
     if (isConnected)
       Scaffold.of(context).showSnackBar(
         SnackBar(
@@ -88,13 +88,50 @@ class _AuthCardState extends State<AuthCard> {
       );
   }
 
-  checkConnectivity() async {
+  void showAuthSnackBar(bool success, String message) {
+    Scaffold.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: success ? Colors.green : Colors.red,
+        content: Text(
+          message,
+          textAlign: TextAlign.center,
+        ),
+      ),
+    );
+  }
+
+  Future<void> handleResetPassword() async {
+    final status = await checkConnectivity();
+    if (status == ConnectivityResult.none) {
+      showNetworkSnackBar(false);
+      return;
+    }
+    if (_emailController.text.isEmpty) {
+      showAuthSnackBar(false, "Enter a valid email");
+      return;
+    }
+    final result = await Auth().sendPasswordResetEmail(_emailController.text);
+    print(result);
+    if (result == 1)
+      showAuthSnackBar(true,
+          'A password reset mail has been sent to ${_emailController.text}. Follow the instructions to reset your passord');
+    else if (result == 0)
+      showAuthSnackBar(false,
+          '${_emailController.text} is not registered with us. Kindly signup!');
+    else
+      showAuthSnackBar(false, "Enter a valid email");
+  }
+
+  checkConnectivityAddListener() async {
     Auth().connectionStatus.listen((ConnectivityResult result) {
-      if (result == ConnectivityResult.none)
-        showNetworkSnackbar(false);
+      if (result != ConnectivityResult.none)
+        showNetworkSnackBar(true);
       else
-        showNetworkSnackbar(true);
+        showNetworkSnackBar(false);
     });
+  }
+
+  checkConnectivity() async {
     final result = await Connectivity().checkConnectivity();
     return result;
   }
@@ -107,7 +144,7 @@ class _AuthCardState extends State<AuthCard> {
   final _pwdController = TextEditingController();
   final _cpwdController = TextEditingController();
   final _fnController = TextEditingController();
-
+  final _emailController = TextEditingController();
   final _emailFN = FocusNode();
   final _pwdFN = FocusNode();
   final _confirmpwdFN = FocusNode();
@@ -124,10 +161,10 @@ class _AuthCardState extends State<AuthCard> {
             key: _formKey,
             child: Column(
               children: [
-               
                 Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: TextFormField(
+                    controller: _emailController,
                     focusNode: _emailFN,
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.next,
@@ -203,7 +240,7 @@ class _AuthCardState extends State<AuthCard> {
                     },
                   ),
                 ),
-                if (_authMode == AuthMode.SignUp) 
+                if (_authMode == AuthMode.SignUp)
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextFormField(
@@ -226,7 +263,7 @@ class _AuthCardState extends State<AuthCard> {
                       ),
                     ),
                   ),
-                   if (_authMode == AuthMode.SignUp)
+                if (_authMode == AuthMode.SignUp)
                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: TextFormField(
@@ -267,6 +304,8 @@ class _AuthCardState extends State<AuthCard> {
                           backgroundColor: Colors.white,
                         )
                       : RaisedButton(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(7)),
                           onPressed: _authenticate,
                           color: Colors.indigo,
                           child: Container(
@@ -280,6 +319,24 @@ class _AuthCardState extends State<AuthCard> {
                                 style: TextStyle(color: Colors.white),
                               )),
                         ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Forgot your credentials?  ',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    GestureDetector(
+                      onTap: handleResetPassword,
+                      child: Text(
+                        'Get help signing in.',
+                        style: TextStyle(
+                            color: Colors.lightBlue,
+                            fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ],
                 ),
                 Padding(
                   padding: const EdgeInsets.all(8.0),
@@ -334,7 +391,7 @@ class _AuthCardState extends State<AuthCard> {
                     )
                   ],
                 ),
-              CWGButton(),
+                CWGButton(),
               ],
             ),
           ),
@@ -346,7 +403,7 @@ class _AuthCardState extends State<AuthCard> {
   Future<void> _authenticate() async {
     final result = await checkConnectivity();
     if (result == ConnectivityResult.none) {
-      showNetworkSnackbar(false);
+      showNetworkSnackBar(false);
       return;
     }
     if (!_formKey.currentState.validate()) return;
@@ -355,7 +412,7 @@ class _AuthCardState extends State<AuthCard> {
     });
     _formKey.currentState.save();
     if (_authMode == AuthMode.SignUp) {
-      final result = await Auth().signUp(email, password,displayName);
+      final result = await Auth().signUp(email, password, displayName);
       if (result != 1) {
         showDialog(
             context: context,

@@ -1,3 +1,4 @@
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
@@ -40,11 +41,24 @@ class _AddEventScreenState extends State<AddEventScreen> {
 
     super.dispose();
   }
+  Future<String> _createInviteLink(String eventID) async {
+    final DynamicLinkParameters parameters = DynamicLinkParameters(
+        uriPrefix: 'https://guesture.page.link',
+        link: Uri.parse('https://guesture.page.link/workspace?wID=$eventID'),
+        androidParameters: AndroidParameters(
+          packageName: 'com.santhoshivan.guesture',
+          minimumVersion: 0,
+        ));
+    final Uri inviteUrl = await parameters.buildShortLink().then((value) => value.shortUrl);
+    
+    return inviteUrl.toString();
+  }
 
   Future<void> _fabClicked() async {
     if (!_formKey.currentState.validate()) return;
     _formKey.currentState.save();
     _processingEvent.eventID = randomAlphaNumeric(5);
+    _processingEvent.inviteLink = await _createInviteLink(_processingEvent.eventID);
     Navigator.of(context).pop();
     await GuestureDB.addEvent(_processingEvent);
   }

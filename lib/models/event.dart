@@ -10,6 +10,7 @@ class Event {
   final String eventName;
   final DateTime startDate;
   final TimeOfDay startTime;
+  String inviteLink;
   List<Guest> guests;
   List<GTransaction> transactions;
   final double ticketPrice;
@@ -23,6 +24,7 @@ class Event {
     @required this.eventName,
     @required this.startDate,
     @required this.startTime,
+    this.inviteLink,
     this.guests,
     this.transactions,
     @required this.ticketPrice,

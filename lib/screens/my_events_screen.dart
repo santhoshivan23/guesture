@@ -1,16 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:guesture/models/event.dart';
 import 'package:guesture/models/g_user.dart';
 import 'package:guesture/providers/auth.dart';
+import 'package:guesture/providers/guesture_db.dart';
 import 'package:guesture/screens/add_event_screen.dart';
 import 'package:guesture/screens/manage_standard.dart';
 import 'package:guesture/widgets/event_tile.dart';
+import 'package:guesture/widgets/guesture_avatar.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MyEventsScreen extends StatefulWidget {
+  final GUser gUser;
+  MyEventsScreen({this.gUser});
   static const routeName = '/my-events';
 
   @override
@@ -19,9 +25,102 @@ class MyEventsScreen extends StatefulWidget {
 
 class _MyEventsScreenState extends State<MyEventsScreen> {
   var _filterindex = 0;
+
+  @override
+  void initState() {
+    fetchLinkData();
+    super.initState();
+  }
+
+  void fetchLinkData() async {
+    var link = await FirebaseDynamicLinks.instance.getInitialLink();
+
+    handleLinkData(link);
+
+    FirebaseDynamicLinks.instance.onLink(
+        onSuccess: (PendingDynamicLinkData dynamicLink) async {
+      handleLinkData(dynamicLink);
+    });
+  }
+
+  void showLinkDialog(
+    String title,
+    String content,
+    Icon icon,
+  ) {
+    showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(15)),
+              title: Column(
+                children: [
+                  icon,
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(title),
+                  ),
+                ],
+              ),
+              content: Text(content),
+              actions: [
+                FlatButton(
+                  child: Text('Okay!'),
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                )
+              ],
+            ));
+  }
+
+  void handleLinkData(PendingDynamicLinkData data) async {
+    final Uri uri = data?.link;
+
+    if (uri != null) {
+      final queryParams = uri.queryParameters;
+      if (queryParams.length > 0) {
+        String wID = queryParams['wID'];
+        print(wID);
+        final result =
+            await GuestureDB.requestToJoinWorkspace(wID, widget.gUser.uid);
+        if (result == 1) {
+          showLinkDialog(
+            'Welcome',
+            'You will get access to the workspace once the administrator accepts your request. Sit back and relax!',
+            Icon(
+              Icons.done,
+              color: Colors.green,
+              size: 30,
+            ),
+          );
+        } else if (result == 0) {
+          showLinkDialog(
+            'Oops',
+            'You are already a part of this workspace.',
+            Icon(
+              MdiIcons.information,
+              color: Colors.red,
+              size: 30,
+            ),
+          );
+        } else {
+          showLinkDialog(
+            'Request pending!',
+            'You had already requested access to this workspace. Please wait for the administrator to accept your request.',
+            Icon(
+              MdiIcons.information,
+              color: Colors.red,
+              size: 30,
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final GUser gUser = Provider.of<GUser>(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Events'),
@@ -61,14 +160,15 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
           )
         ],
       ),
-      drawer: GuestureDrawer(gUser: gUser),
+      drawer: GuestureDrawer(gUser: widget.gUser),
       body: Padding(
         padding: const EdgeInsets.symmetric(vertical: 15.0),
         child: StreamBuilder(
-          stream: Firestore.instance
-              .collection('events')
-              .where('uid', isEqualTo: gUser.uid)
-              .snapshots(),
+          stream: Firestore.instance.collection('events')
+
+              ///.where('uid', isEqualTo: gUser.uid)
+              .where('members.' + widget.gUser.uid,
+                  whereIn: ['admin', 'moderator','requested']).snapshots(),
           builder: (ctx, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting)
               return Center(child: CircularProgressIndicator());
@@ -104,7 +204,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                             child: Text('You don\'t have any upcoming events'),
                           )
                         : Center(
-                            child: Text(gUser.isAdmin
+                            child: Text(widget.gUser.isAdmin
                                 ? 'You don\'t have any events. Start Organizing!'
                                 : 'Your administrator hasn\'t created any event.'),
                           )
@@ -116,20 +216,20 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                       eventLocation: eventsData[index].location,
                       eventName: eventsData[index].eventName,
                       startDate: eventsData[index].startDate,
-                      isAdmin: gUser.isAdmin,
+                      isAdmin: widget.gUser.isAdmin,
                     ),
                   );
           },
         ),
       ),
-      floatingActionButton: !gUser.isAdmin
+      floatingActionButton: !widget.gUser.isAdmin
           ? null
           : FloatingActionButton(
               backgroundColor: Colors.deepPurple,
               child: Icon(Icons.add),
               onPressed: () {
-                Navigator.of(context)
-                    .pushNamed(AddEventScreen.routeName, arguments: gUser);
+                Navigator.of(context).pushNamed(AddEventScreen.routeName,
+                    arguments: widget.gUser);
               }),
     );
   }
@@ -158,37 +258,54 @@ class GuestureDrawer extends StatelessWidget {
           children: [
             Padding(
               padding: const EdgeInsets.all(8.0),
+              child: GuestureAvatar(
+                  gUser.photoUrl, gUser.displayName, gUser.email),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
               child: ListTile(
-                leading: CircleAvatar(
-                  child: Icon(Icons.person_pin),
-                ),
                 title: Text(
-                  gUser.email.split('@')[0],
+                  gUser.displayName == null ? 'NA' : gUser.displayName,
                   textAlign: TextAlign.center,
                 ),
                 subtitle: Text(
-                  gUser.isAdmin ? 'Administrator' : 'Standard User',
+                  gUser.email,
                   textAlign: TextAlign.center,
                 ),
               ),
             ),
             Divider(),
-            if (gUser.isAdmin)
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ListTile(
-                  onTap: () {
-                    Navigator.of(context).pop();
-                    // Navigator.of(context)
-                    //     .pushNamed(ManageStandard.routeName, arguments: gUser);
-                  },
-                  leading: Icon(Icons.dashboard, color: Colors.green),
-                  title: Text(
-                    'Manage Standard Users',
-                    textAlign: TextAlign.center,
-                  ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ListTile(
+                onTap: () {
+                  Navigator.of(context).pop();
+                  // Navigator.of(context)
+                  //     .pushNamed(ManageStandard.routeName, arguments: gUser);
+                },
+                leading: Icon(MdiIcons.bell, color: Colors.orange),
+                title: Text(
+                  'Notifications',
+                  textAlign: TextAlign.center,
                 ),
               ),
+            ),
+            Divider(),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ListTile(
+                onTap: () {
+                  Navigator.of(context).pop();
+                  // Navigator.of(context)
+                  //     .pushNamed(ManageStandard.routeName, arguments: gUser);
+                },
+                leading: Icon(MdiIcons.security, color: Colors.green),
+                title: Text(
+                  'Privacy Policy',
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            ),
             Divider(),
             Padding(
               padding: const EdgeInsets.all(8.0),

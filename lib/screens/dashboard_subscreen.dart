@@ -20,13 +20,7 @@ class DashboardSubScreen extends StatelessWidget {
             ),
           ),
           ReservationCounter(eventID: eventID),
-          FloatingActionButton(
-            child: Icon(Icons.person_add),
-            onPressed: () {
-              Navigator.of(context).pushNamed(NewReservationScreen.routeName,
-                  arguments: eventID);
-            },
-          ),
+          
           SizedBox(height: 1)
         ],
       ),

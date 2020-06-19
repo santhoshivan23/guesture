@@ -8,7 +8,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:guesture/models/g_user.dart';
 
 class Auth with ChangeNotifier {
-  GUser _gUserFromFBUser(FirebaseUser user)  {
+  GUser _gUserFromFBUser(FirebaseUser user) {
     if (user == null) return null;
 
     return GUser(
@@ -34,12 +34,26 @@ class Auth with ChangeNotifier {
           .createUserWithEmailAndPassword(email: email, password: password);
       if (response == null) return 0;
 
-      final gUser =  _gUserFromFBUser(response.user);
+      final gUser = _gUserFromFBUser(response.user);
       await createUser(gUser);
       return 1;
     } catch (err) {
       return 0;
     }
+  }
+
+  Future<int> sendPasswordResetEmail(String email) async {
+    final result = await FirebaseAuth.instance
+        .sendPasswordResetEmail(email: email)
+        .then((_) {
+      return 1;
+    }).catchError((err) {
+      // if (err.toString().contains('ERROR_INAVLID_EMAIL')) return -1;
+      if(err.toString().contains("ERROR_INVALID_EMAIL"))
+      return -1;
+      return 0;
+    });
+    return result;
   }
 
   Future<void> createUser(GUser gUser) async {
@@ -78,7 +92,7 @@ class Auth with ChangeNotifier {
     assert(user.uid == currentUser.uid);
 
     if (result.additionalUserInfo.isNewUser) {
-      final gUser =  _gUserFromFBUser(user);
+      final gUser = _gUserFromFBUser(user);
       await createUser(gUser);
     }
   }

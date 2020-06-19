@@ -5,7 +5,9 @@ import 'package:flutter/rendering.dart';
 import 'package:guesture/screens/checkin_subscreen.dart';
 import 'package:guesture/screens/dashboard_subscreen.dart';
 import 'package:guesture/screens/finance_subscreen.dart';
+import 'package:guesture/screens/my_workspace_subscreen.dart';
 import 'package:guesture/screens/reservations_subscreen.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class EventOverviewScreen extends StatefulWidget {
   static const routeName = '/event-overview';
@@ -15,12 +17,12 @@ class EventOverviewScreen extends StatefulWidget {
 }
 
 class _EventOverviewScreenState extends State<EventOverviewScreen> {
-  int _selectedPageIndex = 0;
+  var selectedIndex = 0;
 
   PageController _pageController;
   MenuPositionController _menuPositionController;
   bool _userPageDragging = false;
-
+ 
   @override
   void initState() {
     _pageController = PageController(
@@ -57,107 +59,189 @@ class _EventOverviewScreenState extends State<EventOverviewScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final eventData = ModalRoute.of(context).settings.arguments as Map<String,dynamic>;
+    final eventData =
+        ModalRoute.of(context).settings.arguments as Map<String, dynamic>;
     final eventID = eventData['eventID'];
-    final eventName = eventData['eventName']; 
+    final eventName = eventData['eventName'];
     final bool isAdmin = eventData['isAdmin'];
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title:  Text(eventName),
-        centerTitle: true,
-        flexibleSpace: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(colors: [Colors.deepPurple, Colors.deepPurple.withOpacity(0.5)]),
-          ),
-        ),
-       
-      ),
-      body: NotificationListener<ScrollNotification>(
-        onNotification: (scrollNotification) {
-          checkUserDragging(scrollNotification);
-        },
-        child: PageView(
-          controller: _pageController,
-          onPageChanged: (page) {},
-          children: <Widget>[
+     List<Widget> screens = [
             DashboardSubScreen(eventID: eventID,),
             ReservationsSubScreen(eventID: eventID,isAdmin: isAdmin,),
             CheckinSubscreen(eventID: eventID),
             FinanceSubscreen(eventID: eventID,isAdmin: isAdmin,),
-          ],
+            MyWorkspaceSubscreen(eventID : eventID, isAdmin:isAdmin),
+          ];
+    //return Scaffold(
+    //   backgroundColor: Colors.white,
+    // appBar: AppBar(
+    //   title:  Text(eventName),
+    //   centerTitle: true,
+    //   flexibleSpace: Container(
+    //     decoration: BoxDecoration(
+    //       gradient: LinearGradient(colors: [Colors.deepPurple, Colors.deepPurple.withOpacity(0.5)]),
+    //     ),
+    //   ),
+
+    // ),
+    //   body: NotificationListener<ScrollNotification>(
+    //     onNotification: (scrollNotification) {
+    //       checkUserDragging(scrollNotification);
+    //     },
+    //     child: PageView(
+    //       controller: _pageController,
+    //       onPageChanged: (page) {},
+    //       children: <Widget>[
+    //         DashboardSubScreen(eventID: eventID,),
+    //         ReservationsSubScreen(eventID: eventID,isAdmin: isAdmin,),
+    //         CheckinSubscreen(eventID: eventID),
+    //         FinanceSubscreen(eventID: eventID,isAdmin: isAdmin,),
+    //         MyWorkspaceSubscreen(eventID : eventID, isAdmin:isAdmin),
+    //       ],
+    //     ),
+    //   ),
+
+    //   bottomNavigationBar: BubbledNavigationBar(
+    //     controller: _menuPositionController,
+    //     onTap: (index) {
+    //       _pageController.animateToPage(index,
+    //           duration: Duration(milliseconds: 250),
+    //           curve: Curves.easeInOutQuad);
+    //     },
+    //     initialIndex: 0,
+    //     animationDuration: Duration(milliseconds: 250),
+    //     defaultBubbleColor: Colors.indigo,
+    //     items: <BubbledNavigationBarItem>[
+    //       BubbledNavigationBarItem(
+    //         icon: Icon(
+    //           Icons.dashboard,
+    //           color: Colors.redAccent,
+    //         ),
+    //         activeIcon: Icon(
+    //           Icons.dashboard,
+    //           color: Colors.white,
+    //         ),
+    //         title: Text(
+    //           'Overview',
+    //           style: TextStyle(color: Colors.white),
+    //         ),
+    //       ),
+    //       BubbledNavigationBarItem(
+    //         icon: Icon(
+    //           Icons.people,
+    //           color: Colors.blue,
+    //         ),
+    //         activeIcon: Icon(
+    //           Icons.people,
+    //           color: Colors.white,
+    //         ),
+    //         title: Text(
+    //           'Reservations',
+    //           style: TextStyle(color: Colors.white),
+    //         ),
+    //       ),
+    //       BubbledNavigationBarItem(
+    //         icon: Icon(
+    //           Icons.send,
+    //           color: Colors.pink,
+    //         ),
+    //         activeIcon: Icon(
+    //           Icons.send,
+    //           color: Colors.white,
+    //         ),
+    //         title: Text(
+    //           'Check-In',
+    //           style: TextStyle(color: Colors.white),
+    //         ),
+    //       ),
+    //       BubbledNavigationBarItem(
+    //         icon: Icon(
+    //           Icons.monetization_on,
+    //           color: Colors.purple,
+    //         ),
+    //         activeIcon: Icon(
+    //           Icons.monetization_on,
+    //           color: Colors.white,
+    //         ),
+    //         title: Text(
+    //           'Finance',
+    //           style: TextStyle(color: Colors.white),
+    //         ),
+    //       ),
+    //       BubbledNavigationBarItem(
+    //         icon: Icon(
+    //           MdiIcons.laptopMac,
+    //           color: Colors.teal,
+    //         ),
+    //         activeIcon: Icon(
+    //           MdiIcons.laptopMac,
+    //           color: Colors.white,
+    //         ),
+    //         title: Text(
+    //           'My Workspace',
+    //           style: TextStyle(color: Colors.white),
+    //         ),
+    //       ),
+    //     ],
+    //   ),
+    // );
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(eventName),
+        centerTitle: true,
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [
+              Colors.deepPurple,
+              Colors.deepPurple.withOpacity(0.5)
+            ]),
+          ),
         ),
       ),
+      body: screens.elementAt(selectedIndex),
       
-      bottomNavigationBar: BubbledNavigationBar(
-        controller: _menuPositionController,
+      bottomNavigationBar: BottomNavigationBar(
+
         onTap: (index) {
-          _pageController.animateToPage(index,
-              duration: Duration(milliseconds: 250),
-              curve: Curves.easeInOutQuad);
+           setState(() {
+             selectedIndex = index;
+           });
         },
-        initialIndex: 0,
-        animationDuration: Duration(milliseconds: 250),
-        defaultBubbleColor: Colors.indigo,
-        items: <BubbledNavigationBarItem>[
-          BubbledNavigationBarItem(
-            icon: Icon(
-              Icons.dashboard,
-              color: Colors.redAccent,
-            ),
-            activeIcon: Icon(
-              Icons.dashboard,
-              color: Colors.white,
-            ),
-            title: Text(
-              'Overview',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-          BubbledNavigationBarItem(
-            icon: Icon(
-              Icons.people,
-              color: Colors.blue,
-            ),
-            activeIcon: Icon(
-              Icons.people,
-              color: Colors.white,
-            ),
-            title: Text(
-              'Reservations',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-          BubbledNavigationBarItem(
-            icon: Icon(
-              Icons.send,
-              color: Colors.pink,
-            ),
-            activeIcon: Icon(
-              Icons.send,
-              color: Colors.white,
-            ),
-            title: Text(
-              'Check-In',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-          BubbledNavigationBarItem(
-            icon: Icon(
-              Icons.monetization_on,
-              color: Colors.purple,
-            ),
-            activeIcon: Icon(
-              Icons.monetization_on,
-              color: Colors.white,
-            ),
-            title: Text(
-              'Finance',
-              style: TextStyle(color: Colors.white),
-            ),
-          ),
-        ],
-      ),
+        
+        unselectedItemColor: Colors.deepPurple,
+        showUnselectedLabels: true,
+        
+        fixedColor: Colors.deepPurple,
+        currentIndex: selectedIndex,
+        items: [
+        BottomNavigationBarItem(
+          activeIcon:Icon(MdiIcons.information),
+          icon: Icon(MdiIcons.informationOutline),
+          title: Text('Dashboard'),
+          backgroundColor: Colors.white
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(Icons.people_outline),
+          activeIcon: Icon(Icons.people),
+          title: Text('Guests'),
+         
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(MdiIcons.sendCircleOutline),
+          activeIcon: Icon(MdiIcons.sendCircle),
+          title: Text('Check-In'),
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(MdiIcons.walletOutline),
+          activeIcon: Icon(MdiIcons.wallet),
+          title: Text('Finance'),
+        ),
+        BottomNavigationBarItem(
+          icon: Icon(MdiIcons.homeCityOutline),
+          activeIcon: Icon(MdiIcons.homeCity),
+          title: Text('Workspace'),
+        ),
+      ]),
     );
   }
 }

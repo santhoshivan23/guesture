@@ -4,33 +4,31 @@ import 'package:guesture/models/guest.dart';
 import 'package:guesture/models/transaction.dart';
 import '../models/event.dart';
 
-
-class GuestureDB  {
- 
-    
-  
+class GuestureDB {
   static Future<void> addEvent(Event newEvent) async {
-   
-    await Firestore.instance.collection('events').document(newEvent.eventID).setData({
+    await Firestore.instance
+        .collection('events')
+        .document(newEvent.eventID)
+        .setData({
       'uid': newEvent.uid,
+      'members': {
+        newEvent.uid: 'admin',
+      },
       'eventName': newEvent.eventName,
       'ticketPrice': newEvent.ticketPrice,
       'location': newEvent.location,
       'startDT': newEvent.startDate.toIso8601String(),
       'checkInFraction': 0,
+      'inviteLink': newEvent.inviteLink,
     });
-   
   }
-
-  
 
   static Future<void> deleteEvent(String eventID) async {
-   await Firestore.instance.collection('events').document(eventID).delete(); 
+    await Firestore.instance.collection('events').document(eventID).delete();
   }
 
-
   static Future<void> updateCIF(String eventID) async {
-     final totalGuests = await Firestore.instance
+    final totalGuests = await Firestore.instance
         .collection('events')
         .document(eventID)
         .collection('guests')
@@ -46,10 +44,11 @@ class GuestureDB  {
         .getDocuments()
         .then((value) => value.documents.fold(
             0,
-            (previousValue, element) => element.data['isCheckedIn'] ? 
-                (previousValue as int) + (element.data['gAllowance'] as int): previousValue as int));
+            (previousValue, element) => element.data['isCheckedIn']
+                ? (previousValue as int) + (element.data['gAllowance'] as int)
+                : previousValue as int));
     await Firestore.instance.collection('events').document(eventID).updateData({
-      'checkInFraction' : totalGuests == 0 ? 0 :checkedGuests / totalGuests
+      'checkInFraction': totalGuests == 0 ? 0 : checkedGuests / totalGuests
     });
   }
 
@@ -68,44 +67,69 @@ class GuestureDB  {
       'gOrg': newGuest.gOrg,
       'isCheckedIn': false,
     }).then((value) => updateCIF(eventID));
-   
-    
-    
   }
 
   static Future<void> deleteGuest(String eventID, String guestID) async {
-    
-    await Firestore.instance.collection('events').document(eventID).collection('guests').document(guestID).delete().then((value) => updateCIF(eventID));
-    
+    await Firestore.instance
+        .collection('events')
+        .document(eventID)
+        .collection('guests')
+        .document(guestID)
+        .delete()
+        .then((value) => updateCIF(eventID));
   }
 
-  
-
   static Future<int> checkInGuest(String guestID, String eventID) async {
-    final guestDoc = await Firestore.instance.collection('events').document(eventID).collection('guests').document(guestID).get();
-    if(!guestDoc.exists) return -1;
-    if(guestDoc.data['isCheckedIn']) return 0;
+    final guestDoc = await Firestore.instance
+        .collection('events')
+        .document(eventID)
+        .collection('guests')
+        .document(guestID)
+        .get();
+    if (!guestDoc.exists) return -1;
+    if (guestDoc.data['isCheckedIn'])
+      return 0;
     else {
-      await Firestore.instance.collection('events').document(eventID).collection('guests').document(guestID).updateData({
-        'isCheckedIn' : true,
+      await Firestore.instance
+          .collection('events')
+          .document(eventID)
+          .collection('guests')
+          .document(guestID)
+          .updateData({
+        'isCheckedIn': true,
       }).then((value) => updateCIF(eventID));
       return 1;
     }
-
   }
 
-  static Future<void> addTrasanction(GTransaction newTrasaction,String eventID) async {
-  
-    await Firestore.instance.collection('events').document(eventID).collection('transactions').add({
-          'amount': newTrasaction.amount,
-          
-          'payerName': newTrasaction.payerName,
-          'txID' : 'Cash${newTrasaction.payerName}',
-          'timeOfPayment': Timestamp.fromDate(newTrasaction.timeOfPayment),
+  static Future<void> addTrasanction(
+      GTransaction newTrasaction, String eventID) async {
+    await Firestore.instance
+        .collection('events')
+        .document(eventID)
+        .collection('transactions')
+        .add({
+      'amount': newTrasaction.amount,
+      'payerName': newTrasaction.payerName,
+      'txID': 'Cash${newTrasaction.payerName}',
+      'timeOfPayment': Timestamp.fromDate(newTrasaction.timeOfPayment),
     });
-    
-
-    
   }
-  
+
+  static Future<int> requestToJoinWorkspace(String eventID, String uid) async {
+    final eventRef =
+        await Firestore.instance.collection('events').document(eventID).get();
+    Map<String, dynamic> membersMap = eventRef.data['members'];
+    print(membersMap);
+    if (membersMap.containsKey(uid)) {
+      if(membersMap[uid] == 'requested')
+      return -1;
+      return 0;
+    }
+    membersMap[uid] = 'requested';
+    await Firestore.instance.collection('events').document(eventID).updateData({
+      'members': membersMap,
+    });
+    return 1;
+  }
 }
