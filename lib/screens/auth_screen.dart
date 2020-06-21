@@ -183,8 +183,9 @@ class _AuthCardState extends State<AuthCard> {
                       FocusScope.of(context).requestFocus(_pwdFN);
                     },
                     validator: (email) {
-                      if (!email.contains('.com') || !email.contains('@'))
-                        return 'Enter a valid email';
+                      if (!RegExp(
+                              r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+                          .hasMatch(email)) return 'Enter a valid email';
                       return null;
                     },
                     onSaved: (val) {

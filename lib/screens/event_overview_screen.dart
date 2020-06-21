@@ -69,7 +69,7 @@ class _EventOverviewScreenState extends State<EventOverviewScreen> {
             ReservationsSubScreen(eventID: eventID,isAdmin: isAdmin,),
             CheckinSubscreen(eventID: eventID),
             FinanceSubscreen(eventID: eventID,isAdmin: isAdmin,),
-            MyWorkspaceSubscreen(eventID : eventID, isAdmin:isAdmin),
+            MyWorkspaceSubscreen(eventID : eventID, isAdmin:isAdmin,eventName: eventName,),
           ];
     //return Scaffold(
     //   backgroundColor: Colors.white,

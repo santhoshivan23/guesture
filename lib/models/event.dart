@@ -10,13 +10,15 @@ class Event {
   final String eventName;
   final DateTime startDate;
   final TimeOfDay startTime;
-  String inviteLink;
+  String inviteLinkA;
+  String inviteLinkO;
   List<Guest> guests;
   List<GTransaction> transactions;
   final double ticketPrice;
   final String location;
   double checkInFraction;
-  
+  final bool access;
+  final String role;
 
   Event({
     this.uid,
@@ -24,12 +26,15 @@ class Event {
     @required this.eventName,
     @required this.startDate,
     @required this.startTime,
-    this.inviteLink,
+    this.inviteLinkA,
+    this.inviteLinkO,
     this.guests,
     this.transactions,
     @required this.ticketPrice,
     @required this.location,
     this.checkInFraction,
+    this.access,
+    this.role
   });
 
 }

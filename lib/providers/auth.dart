@@ -3,9 +3,11 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:connectivity/connectivity.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:guesture/models/g_user.dart';
+import 'package:guesture/providers/guesture_db.dart';
 
 class Auth with ChangeNotifier {
   GUser _gUserFromFBUser(FirebaseUser user) {
@@ -36,6 +38,7 @@ class Auth with ChangeNotifier {
 
       final gUser = _gUserFromFBUser(response.user);
       await createUser(gUser);
+      await GuestureDB.createToken(response.user.uid);
       return 1;
     } catch (err) {
       return 0;
@@ -66,9 +69,9 @@ class Auth with ChangeNotifier {
 
   Future<int> login(String email, String password) async {
     try {
-      await FirebaseAuth.instance
+      final result = await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password);
-
+      await GuestureDB.createToken(result.user.uid);
       return 1;
     } catch (err) {
       if (err.toString().contains('ERROR_USER_NOT_FOUND')) return -1;
@@ -95,9 +98,14 @@ class Auth with ChangeNotifier {
       final gUser = _gUserFromFBUser(user);
       await createUser(gUser);
     }
+    await GuestureDB.createToken(user.uid);
   }
 
-  Future<void> logout() async {
+  Future<void> logout(String uid) async {
+    FirebaseMessaging _fcm = FirebaseMessaging();
+    String token = await _fcm.getToken();
+
+    await GuestureDB.deleteToken(uid, token);
     await GoogleSignIn().signOut();
     await FirebaseAuth.instance.signOut();
   }

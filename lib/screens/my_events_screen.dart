@@ -8,6 +8,7 @@ import 'package:guesture/providers/auth.dart';
 import 'package:guesture/providers/guesture_db.dart';
 import 'package:guesture/screens/add_event_screen.dart';
 import 'package:guesture/screens/manage_standard.dart';
+import 'package:guesture/screens/notifications_screen.dart';
 import 'package:guesture/widgets/event_tile.dart';
 import 'package:guesture/widgets/guesture_avatar.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -81,9 +82,10 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
       final queryParams = uri.queryParameters;
       if (queryParams.length > 0) {
         String wID = queryParams['wID'];
+        String role = queryParams['role'];
         print(wID);
-        final result =
-            await GuestureDB.requestToJoinWorkspace(wID, widget.gUser.uid);
+        final result = await GuestureDB.requestToJoinWorkspace(
+            wID, widget.gUser.uid, role);
         if (result == 1) {
           showLinkDialog(
             'Welcome',
@@ -167,8 +169,12 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
           stream: Firestore.instance.collection('events')
 
               ///.where('uid', isEqualTo: gUser.uid)
-              .where('members.' + widget.gUser.uid,
-                  whereIn: ['admin', 'moderator','requested']).snapshots(),
+              .where('members.' + widget.gUser.uid, whereIn: [
+            'admin',
+            'org',
+            'requested-admin',
+            'requested-org'
+          ]).snapshots(),
           builder: (ctx, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting)
               return Center(child: CircularProgressIndicator());
@@ -182,8 +188,24 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                         DateTime.parse(e['startDT']),
                       ),
                       ticketPrice: e['ticketPrice'],
+                      access: e['members'][widget.gUser.uid]
+                              .toString()
+                              .contains('requested')
+                          ? false
+                          : true,
+                      role: !e['members'][widget.gUser.uid]
+                              .toString()
+                              .contains('requested')
+                          ? e['members'][widget.gUser.uid]
+                                  .toString()
+                                  .contains('admin')
+                              ? 'admin'
+                              : 'org'
+                          : null,
                     ))
                 .toList();
+            eventsData
+                .sort((Event a, Event b) => a.eventName.compareTo(b.eventName));
             if (_filterindex == -1)
               eventsData = eventsData
                   .where(
@@ -216,7 +238,9 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                       eventLocation: eventsData[index].location,
                       eventName: eventsData[index].eventName,
                       startDate: eventsData[index].startDate,
+                      access: eventsData[index].access,
                       isAdmin: widget.gUser.isAdmin,
+                      role: eventsData[index].role,
                     ),
                   );
           },
@@ -259,7 +283,7 @@ class GuestureDrawer extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: GuestureAvatar(
-                  gUser.photoUrl, gUser.displayName, gUser.email),
+                  gUser.photoUrl, gUser.displayName, gUser.email, 50),
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -280,6 +304,8 @@ class GuestureDrawer extends StatelessWidget {
               child: ListTile(
                 onTap: () {
                   Navigator.of(context).pop();
+                  Navigator.of(context).pushNamed(NotificationsScreen.routeName,
+                      arguments: gUser.uid);
                   // Navigator.of(context)
                   //     .pushNamed(ManageStandard.routeName, arguments: gUser);
                 },
@@ -406,7 +432,7 @@ class GuestureDrawer extends StatelessWidget {
                 ),
                 onTap: () async {
                   Navigator.pop(context);
-                  await Auth().logout();
+                  await Auth().logout(gUser.uid);
                 },
                 title: Text(
                   'Log Out',

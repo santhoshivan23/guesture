@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:guesture/screens/invite_members_page.dart';
 import 'package:guesture/screens/my_events_screen.dart';
 import 'package:guesture/screens/new_reservation_screen.dart';
+import 'package:guesture/screens/notifications_screen.dart';
 import 'package:guesture/screens/qr_screen.dart';
 import 'package:provider/provider.dart';
 
@@ -41,6 +42,7 @@ class MyApp extends StatelessWidget {
           CashConfirmScreen.routeName: (ctx) => CashConfirmScreen(),
           QRScreen.routeName: (ctx) => QRScreen(),
           InviteMembersPage.routeName : (ctx) => InviteMembersPage(),
+          NotificationsScreen.routeName : (ctx) => NotificationsScreen(),
         },
       ),
     );

@@ -4,13 +4,14 @@ class GuestureAvatar extends StatelessWidget {
   final String url;
   final String name;
   final String email;
-  GuestureAvatar(this.url, this.name, this.email);
+  final double radius;
+  GuestureAvatar(this.url, this.name, this.email,this.radius);
   @override
   Widget build(BuildContext context) {
     return CircleAvatar(
-      radius: 50,
+      radius: radius,
       backgroundImage: url == null ? null : NetworkImage(url),
-      child: url == null ? name != null ? Text(name[0]) : Text(email[0]) : null,
+      child: url == null ? name == null || name.isEmpty ? Text(email[0]) : Text(name[0]) : null,
     );
   }
 }
