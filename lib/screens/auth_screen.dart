@@ -8,6 +8,8 @@ import 'package:guesture/widgets/cwg_button.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class AuthScreen extends StatelessWidget {
+
+  static const routeName = '/auth';
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -433,6 +435,7 @@ class _AuthCardState extends State<AuthCard> {
                   ],
                 ));
       }
+      Navigator.of(context).pop();
       return;
     } else {
       final result = await Auth().login(email, password);
@@ -475,7 +478,7 @@ class _AuthCardState extends State<AuthCard> {
                   ],
                 ));
       }
-
+      Navigator.of(context).pop();
       return;
     }
   }

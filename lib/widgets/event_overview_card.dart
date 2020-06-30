@@ -20,7 +20,7 @@ class EventOverviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     
-    print(MediaQuery.of(context).size.height);
+    
     return StreamBuilder(
       stream: Firestore.instance.collection('events').document(eventID).snapshots(),
       builder: (context, snapshot) {
@@ -80,7 +80,9 @@ class EventOverviewCard extends StatelessWidget {
                       Text(getMonth(DateTime.parse(snapshot.data['startDT'])) + '  '),
                     ],
                   ),
-                  trailing: Padding(
+                  trailing: 
+                  DateTime.now().subtract(Duration(hours: 1)).isBefore(DateTime.parse(snapshot.data['startDT'])) ?
+                   Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Column(
                       children: <Widget>[
@@ -98,7 +100,7 @@ class EventOverviewCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                  ),
+                  ) : SizedBox(width: 70,),
                 ),
               ),
               Card(
@@ -117,7 +119,7 @@ class EventOverviewCard extends StatelessWidget {
                     getTime(TimeOfDay.fromDateTime(DateTime.parse(snapshot.data['startDT']))),
                     textAlign: TextAlign.center,
                   ),
-                  trailing: Padding(
+                  trailing:   DateTime.now().subtract(Duration(hours: 1)).isBefore(DateTime.parse(snapshot.data['startDT'])) ?Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: Column(
                       children: <Widget>[
@@ -135,7 +137,7 @@ class EventOverviewCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                  ),
+                  ) : SizedBox(width: 70,),
                 ),
               ),
               Card(

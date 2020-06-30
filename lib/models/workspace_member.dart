@@ -1,10 +1,11 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:guesture/models/g_user.dart';
 
 class WorkspaceMember  {
-  final GUser gUser;
+  final String uid;
   final String role;
   final int ticketsSold;
 
-  WorkspaceMember({this.gUser,this.role,this.ticketsSold});
+  WorkspaceMember({this.uid,this.role,this.ticketsSold});
 
 }

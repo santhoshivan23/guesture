@@ -10,8 +10,12 @@ import 'package:guesture/screens/invite_members_page.dart';
 import 'package:guesture/screens/my_events_screen.dart';
 import 'package:guesture/screens/new_reservation_screen.dart';
 import 'package:guesture/screens/notifications_screen.dart';
+import 'package:guesture/screens/onboarding_scree.dart';
+import 'package:guesture/screens/profile_page.dart';
 import 'package:guesture/screens/qr_screen.dart';
 import 'package:provider/provider.dart';
+
+import 'models/g_user.dart';
 
 void main() {
   runApp(MyApp());
@@ -34,15 +38,16 @@ class MyApp extends StatelessWidget {
         ),
         home: Wrapper(),
         routes: {
-          // ManageStandard.routeName: (ctx) => ManageStandard(),
+          AuthScreen.routeName: (ctx) => AuthScreen(),
+          ProfilePage.routeName: (ctx) => ProfilePage(),
           MyEventsScreen.routeName: (ctx) => MyEventsScreen(),
           AddEventScreen.routeName: (ctx) => AddEventScreen(),
           EventOverviewScreen.routeName: (ctx) => EventOverviewScreen(),
           NewReservationScreen.routeName: (ctx) => NewReservationScreen(),
           CashConfirmScreen.routeName: (ctx) => CashConfirmScreen(),
           QRScreen.routeName: (ctx) => QRScreen(),
-          InviteMembersPage.routeName : (ctx) => InviteMembersPage(),
-          NotificationsScreen.routeName : (ctx) => NotificationsScreen(),
+          InviteMembersPage.routeName: (ctx) => InviteMembersPage(),
+          NotificationsScreen.routeName: (ctx) => NotificationsScreen(),
         },
       ),
     );
@@ -52,6 +57,12 @@ class MyApp extends StatelessWidget {
 class Wrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+     
+     final user = Provider.of<GUser>(context);
+     if(user == null)
+     print('no user');
+     else
+     print('yes user');
     return StreamBuilder(
       stream: Auth().authenticatedState,
       builder: (ctx, snapshot) {
@@ -82,8 +93,13 @@ class Wrapper extends StatelessWidget {
             ),
           );
         }
-        if (!snapshot.hasData) return AuthScreen();
-        return MyEventsScreen(gUser: snapshot.data,);
+        if (!snapshot.hasData) return OnboardingScreen();
+     
+          return MyEventsScreen(
+            gUser: snapshot.data,
+          );
+        
+
       },
     );
   }

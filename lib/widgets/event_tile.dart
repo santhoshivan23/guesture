@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:guesture/models/event.dart';
+import 'package:guesture/models/g_user.dart';
 import 'package:guesture/providers/guesture_db.dart';
+import 'package:guesture/screens/add_event_screen.dart';
 import 'package:guesture/screens/event_overview_screen.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
 
 class EventTile extends StatelessWidget {
   final String eventID;
@@ -11,6 +15,8 @@ class EventTile extends StatelessWidget {
   final DateTime startDate;
   final bool isAdmin;
   final bool access;
+  final String myUid;
+  final double ticketPrice;
   final String role;
   EventTile(
       {this.eventName,
@@ -18,7 +24,9 @@ class EventTile extends StatelessWidget {
       this.eventLocation,
       this.startDate,
       this.isAdmin,
+      this.ticketPrice,
       this.role,
+      this.myUid,
       this.access});
 
   String getDate(DateTime dt) => DateFormat.d().format(dt);
@@ -27,20 +35,25 @@ class EventTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final gUser = Provider.of<GUser>(context);
+   
     return ListTile(
       onTap: () {
         if (access)
-          Navigator.of(context).pushNamed(EventOverviewScreen.routeName,
-              arguments: {
-                'eventID': eventID,
-                'eventName': eventName,
-                'isAdmin': role == 'admin' ? true : false,
-              });
+          Navigator.of(context)
+              .pushNamed(EventOverviewScreen.routeName, arguments: {
+            'eventID': eventID,
+            'eventName': eventName,
+            'isAdmin': role == 'admin' ? true : false,
+            'myUid': myUid,
+          });
         else
           Scaffold.of(context).showSnackBar(SnackBar(
             backgroundColor: Colors.red,
-            content: Text('Acess Denied!\nWorkspace administrator is yet to approve your request.',textAlign: TextAlign.center,),
-            
+            content: Text(
+              'Acess Denied!\nWorkspace administrator is yet to approve your request.',
+              textAlign: TextAlign.center,
+            ),
           ));
       },
       onLongPress: !access
@@ -96,7 +109,21 @@ class EventTile extends StatelessWidget {
                           ),
                           FlatButton(
                             child: Text('Modify'),
-                            onPressed: () {},
+                            onPressed: () {
+                              Navigator.of(context).pop();
+                              Navigator.of(context).pushNamed(AddEventScreen.routeName,arguments: {
+                                'gUser' : gUser,
+                                'isModify' : true,
+                                'eventData' : Event(
+                                  eventName: eventName,
+                                  location: eventLocation,
+                                  startDate: startDate,
+                                  startTime: TimeOfDay.fromDateTime(startDate),
+                                  ticketPrice: ticketPrice,
+                                  eventID: eventID,
+                                ),
+                              });
+                            },
                           ),
                         ],
                       ));
@@ -158,17 +185,19 @@ class EventTile extends StatelessWidget {
       ),
       trailing: Padding(
         padding: const EdgeInsets.all(8.0),
-        child: Column(
-          children: <Widget>[
-            Text(
-              getDate(startDate),
-              style: GoogleFonts.notoSans(fontWeight: FontWeight.w500),
-            ),
-            Text(
-              getMonth(startDate),
-              style: GoogleFonts.notoSans(fontWeight: FontWeight.w500),
-            ),
-          ],
+        child: FittedBox(
+          child: Column(
+            children: <Widget>[
+              Text(
+                getDate(startDate),
+                style: GoogleFonts.notoSans(fontWeight: FontWeight.w500),
+              ),
+              Text(
+                getMonth(startDate),
+                style: GoogleFonts.notoSans(fontWeight: FontWeight.w500),
+              ),
+            ],
+          ),
         ),
       ),
     );

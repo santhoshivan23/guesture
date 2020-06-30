@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:guesture/models/g_user.dart';
 import 'package:guesture/models/guest.dart';
 import 'package:guesture/screens/cash_confirm_screen.dart';
+import 'package:provider/provider.dart';
 import 'package:random_string/random_string.dart';
 
 class NewReservationScreen extends StatefulWidget {
@@ -44,7 +46,7 @@ class _NewReservationScreenState extends State<NewReservationScreen> {
     });
   }
 
-  void _fabClicked(context, String eventID) {
+  void _fabClicked(context, String eventID, String myUid, String eventName,) {
     if (!_formKey.currentState.validate()) return;
     _formKey.currentState.save();
     _processingGuest = Guest(
@@ -56,6 +58,7 @@ class _NewReservationScreenState extends State<NewReservationScreen> {
       gAllowance: _processingGuest.gAllowance,
       gGender: _switchStateGender ? 'M' : 'F',
       gEventID: _processingGuest.gEventID,
+      reservedBy: myUid,
     );
 
    
@@ -63,12 +66,17 @@ class _NewReservationScreenState extends State<NewReservationScreen> {
         .pushNamed(CashConfirmScreen.routeName, arguments: {
           'guest' :_processingGuest,
           'eventID' : eventID,
+          'eventName' :  eventName,
           });
   }
 
   @override
   Widget build(BuildContext context) {
-    final eventID = ModalRoute.of(context).settings.arguments as String;
+    final args = ModalRoute.of(context).settings.arguments as Map<String,String>;
+    final String eventID = args['eventID'];
+    final String myUid = args['myUid'];
+    final String eventName = args['eventName'];
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('New Reservation'),
@@ -77,7 +85,7 @@ class _NewReservationScreenState extends State<NewReservationScreen> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.green,
-        onPressed: () => _fabClicked(context, eventID),
+        onPressed: () => _fabClicked(context, eventID,myUid,eventName),
         child: Icon(Icons.arrow_forward),
       ),
       body: SingleChildScrollView(

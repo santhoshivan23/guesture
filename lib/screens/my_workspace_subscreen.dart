@@ -16,35 +16,48 @@ class MyWorkspaceSubscreen extends StatelessWidget {
   String myUid;
   MyWorkspaceSubscreen({this.eventID, this.isAdmin, this.eventName});
   List<WorkspaceMember> members = [];
-  Future<void> fetchGUsers() async {
-    final eventRef =
-        await Firestore.instance.collection('events').document(eventID).get();
-    Map<String, dynamic> membersMap = eventRef.data['members'];
-    final uids = membersMap.keys.toList();
-    for (var uid in uids) {
-      final gUser = await GuestureDB.getGUserFromUid(uid);
-      final role = await GuestureDB.getRole(uid, eventID);
-      final ticketsSold = await GuestureDB.getTicketsSoldByUid(uid, eventID);
+  // Future<void> fetchGUsers() async {
+  //   final eventRef =
+  //       await Firestore.instance.collection('events').document(eventID).get();
+  //   Map<String, dynamic> membersMap = eventRef.data['members'];
+  //   final uids = membersMap.keys.toList();
+  //   for (var uid in uids) {
+  //     final gUser = await GuestureDB.getGUserFromUid(uid);
+  //     final role = await GuestureDB.getRole(uid, eventID);
+  //     final ticketsSold = await GuestureDB.getTicketsSoldByUid(uid, eventID);
 
-      members.add(
-          WorkspaceMember(gUser: gUser, role: role, ticketsSold: ticketsSold));
-    }
-    final me = await FirebaseAuth.instance.currentUser();
-    myUid = me.uid;
-  }
+  //     members.add(
+  //         WorkspaceMember(gUser: gUser, role: role, ticketsSold: ticketsSold));
+  //   }
+  //   final me = await FirebaseAuth.instance.currentUser();
+  //   myUid = me.uid;
+  // }
 
   @override
   Widget build(BuildContext context) {
+  
     return Scaffold(
-      body: FutureBuilder(
-          future: fetchGUsers(),
+      body: StreamBuilder(
+          stream: Firestore.instance.collection('events').document(eventID).snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting)
-              return Center(child: CircularProgressIndicator());
+              return Center(child: CircularProgressIndicator(
+                backgroundColor: Colors.white,
+                strokeWidth: 0.25,                
+              ));
+            final membersMap = (snapshot.data['members'] as Map<String,dynamic>);
+            membersMap.forEach((key, value) { 
+              members.add(WorkspaceMember(
+                uid: key,
+                role: value['role'],
+                ticketsSold: value['ticketsSold'] == null ? 0 : value['ticketsSold'],
+              ));
+            });
+            
             return ListView.builder(
-              itemCount: members.length,
+              itemCount: membersMap.length,
               itemBuilder: (ctx, index) => MembersTile(
-                member: members[index],
+                member:  members[index],
                 eventID: eventID,
                 myUid: myUid,
                 eventName: eventName,

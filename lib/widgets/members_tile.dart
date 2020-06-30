@@ -4,7 +4,6 @@ import 'package:guesture/models/g_user.dart';
 import 'package:guesture/models/workspace_member.dart';
 import 'package:guesture/providers/guesture_db.dart';
 import 'package:guesture/widgets/guesture_avatar.dart';
-import 'package:provider/provider.dart';
 
 class MembersTile extends StatefulWidget {
   final WorkspaceMember member;
@@ -12,7 +11,8 @@ class MembersTile extends StatefulWidget {
   final String eventName;
   final bool isAdmin;
   final myUid;
-  MembersTile({this.member, this.eventID, this.myUid,this.eventName,this.isAdmin});
+  MembersTile(
+      {this.member, this.eventID, this.myUid, this.eventName, this.isAdmin});
 
   @override
   _MembersTileState createState() => _MembersTileState();
@@ -20,6 +20,7 @@ class MembersTile extends StatefulWidget {
 
 class _MembersTileState extends State<MembersTile> {
   String memberRole;
+  GUser gUser;
 
   @override
   void initState() {
@@ -34,14 +35,20 @@ class _MembersTileState extends State<MembersTile> {
         memberRole = 'admin';
       });
       await GuestureDB.updateRole(
-          widget.member.gUser.uid, widget.eventID, 'admin');
+          gUser.uid, widget.eventID, 'admin');
     } else {
       setState(() {
         memberRole = 'org';
       });
       await GuestureDB.updateRole(
-          widget.member.gUser.uid, widget.eventID, 'org');
+          gUser.uid, widget.eventID, 'org');
     }
+    await GuestureDB.pushNotification(
+        GNotification(
+            title: '${widget.eventName} · Role updated',
+            content: 'Your request to join he workspace has been accepted',
+            timestamp: DateTime.now().toIso8601String()),
+        [gUser.uid]);
   }
 
   Future<void> _handleTap() async {
@@ -52,14 +59,14 @@ class _MembersTileState extends State<MembersTile> {
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           title: FittedBox(
               child: GuestureAvatar(
-                  widget.member.gUser.photoUrl,
-                  widget.member.gUser.displayName,
-                  widget.member.gUser.email,
+                  gUser.photoUrl,
+                  gUser.displayName,
+                  gUser.email,
                   25)),
           content: Text(
-            widget.member.gUser.displayName == null
+            gUser.displayName == null
                 ? 'NA'
-                : widget.member.gUser.displayName,
+                : gUser.displayName,
             textAlign: TextAlign.center,
           ),
           actions: [
@@ -81,7 +88,7 @@ class _MembersTileState extends State<MembersTile> {
                     ),
                   );
                   await GuestureDB.updateRole(
-                      widget.member.gUser.uid, widget.eventID, 'org');
+                      gUser.uid, widget.eventID, 'org');
                   await GuestureDB.pushNotification(
                       GNotification(
                         title: '${widget.eventName} · Role updated',
@@ -89,7 +96,7 @@ class _MembersTileState extends State<MembersTile> {
                         type: 'role-change',
                         timestamp: DateTime.now().toIso8601String(),
                       ),
-                      [widget.member.gUser.uid]);
+                      [gUser.uid]);
                 },
                 child: RoleChip(
                   color: Colors.orange,
@@ -115,7 +122,7 @@ class _MembersTileState extends State<MembersTile> {
                     ),
                   );
                   await GuestureDB.updateRole(
-                      widget.member.gUser.uid, widget.eventID, 'admin');
+                      gUser.uid, widget.eventID, 'admin');
                   await GuestureDB.pushNotification(
                       GNotification(
                         title: '${widget.eventName} · Role updated',
@@ -123,7 +130,7 @@ class _MembersTileState extends State<MembersTile> {
                         type: 'role-change',
                         timestamp: DateTime.now().toIso8601String(),
                       ),
-                      [widget.member.gUser.uid]);
+                      [gUser.uid]);
                 },
                 child: RoleChip(
                   color: Colors.green,
@@ -135,7 +142,7 @@ class _MembersTileState extends State<MembersTile> {
               onTap: () async {
                 Navigator.of(context).pop();
                 final result = await GuestureDB.updateRole(
-                    widget.member.gUser.uid, widget.eventID, 'REMOVE');
+                    gUser.uid, widget.eventID, 'REMOVE');
                 if (result == 1) {
                   setState(() {
                     memberRole = 'removed';
@@ -156,7 +163,7 @@ class _MembersTileState extends State<MembersTile> {
                         type: 'role-change',
                         timestamp: DateTime.now().toIso8601String(),
                       ),
-                      [widget.member.gUser.uid]);
+                      [gUser.uid]);
                 } else {
                   Scaffold.of(context).showSnackBar(
                     SnackBar(
@@ -178,59 +185,88 @@ class _MembersTileState extends State<MembersTile> {
         ));
   }
 
+  Future<void> getGUser () async {
+    
+    gUser = await GuestureDB.getGUserFromUid(widget.member.uid);
+  }
+
   @override
   Widget build(BuildContext context) {
     return memberRole == 'removed'
         ? Container()
-        : ListTile(
-            onTap: (widget.myUid == widget.member.gUser.uid || !widget.isAdmin) ? null : _handleTap,
-            leading: GuestureAvatar(widget.member.gUser.photoUrl,
-                widget.member.gUser.displayName, widget.member.gUser.email, 20),
-            title: Text(widget.member.gUser.displayName == null
-                ? 'NA'
-                : widget.member.gUser.displayName),
-            subtitle: Text(widget.member.gUser.email),
-            trailing: FittedBox(
-              child: Column(
-                children: [
-                  if (memberRole == 'admin')
-                    RoleChip(
-                      role: 'Adminstrator',
-                      color: Colors.green,
-                      fontSize: 10,
+        : FutureBuilder(
+          future: getGUser(),
+          builder: (context, snapshot) {
+            if(snapshot.connectionState == ConnectionState.waiting)
+            return Center(
+              child: LinearProgressIndicator(backgroundColor: Colors.white, minHeight: 2,),
+            );
+            return Padding(
+                padding: const EdgeInsets.all(3.0),
+                child: ListTile(
+                  onTap:
+                      (widget.myUid == widget.member.uid || !widget.isAdmin)
+                          ? null
+                          : _handleTap,
+                  leading: GuestureAvatar(
+                      gUser.photoUrl,
+                      gUser.displayName,
+                      gUser.email,
+                      20),
+                  title: Text(gUser.displayName == null
+                      ? 'NA'
+                      : gUser.displayName),
+                  subtitle: Text(gUser.email),
+                  trailing: FittedBox(
+                    child: Column(
+                      children: [
+                        if (memberRole == 'admin')
+                          RoleChip(
+                            role: 'Adminstrator',
+                            color: Colors.green,
+                            fontSize: 10,
+                          ),
+                        if (memberRole == 'org')
+                          RoleChip(
+                            role: 'Organizer',
+                            color: Colors.orange,
+                          ),
+                        if (memberRole.contains('invited'))
+                          RoleChip(
+                            role: 'Invited',
+                            color: Colors.deepPurple,
+                            fontSize: 10,
+                          ),
+                        if (memberRole.contains('requested'))
+                          GestureDetector(
+                            onTap: _acceptInvite,
+                            child: Container(
+                              decoration: BoxDecoration(
+                                border: Border.all(color: Colors.green),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Padding(
+                                  padding: const EdgeInsets.all(4.0),
+                                  child: Text(
+                                    'Accept',
+                                    style: TextStyle(
+                                        fontSize: 10, color: Colors.green),
+                                  )),
+                            ),
+                          ),
+                        Padding(
+                          padding: const EdgeInsets.all(2.0),
+                          child: Center(
+                              child: Text(
+                                  '${widget.member.ticketsSold} tickets sold',style: TextStyle(fontSize: 12),)),
+                        )
+                      ],
                     ),
-                  if (memberRole == 'org')
-                    RoleChip(
-                      role: 'Organizer',
-                      color: Colors.orange,
-                    ),
-                  if (memberRole.contains('invited'))
-                    RoleChip(
-                      role: 'Invited',
-                      color: Colors.deepPurple,
-                      fontSize: 10,
-                    ),
-                  if (memberRole.contains('requested'))
-                    GestureDetector(
-                      onTap: _acceptInvite,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.green),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Padding(
-                            padding: const EdgeInsets.all(4.0),
-                            child: Text(
-                              'Accept',
-                              style:
-                                  TextStyle(fontSize: 10, color: Colors.green),
-                            )),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          );
+                  ),
+                ),
+              );
+          }
+        );
   }
 }
 

@@ -5,6 +5,10 @@ admin.initializeApp(functions.config().firebase);
 
 var notifData;
 var uid;
+var guestData;
+var allowances;
+var eventID;
+
 
 exports.notifTrigger = functions.firestore.document('users/{uid}/notifications/{notifID}').onWrite((snapshot, context) => {
     notifData = snapshot.after.data();
@@ -42,3 +46,35 @@ exports.notifTrigger = functions.firestore.document('users/{uid}/notifications/{
     })
 
 })
+
+exports.ticketsSoldTrigger = functions.firestore.document('events/{eventID}/guests/{guestID}').onCreate((snapshot, context) => {
+    guestData = snapshot.data();
+    allowances = guestData.gAllowance;
+    eventID = snapshot.ref.parent.parent.id;
+    uid = guestData.reservedBy;
+
+    return admin.firestore().collection('events').doc(eventID).update(
+        {
+            [`members.${uid}.ticketsSold`] : admin.firestore.FieldValue.increment(allowances),
+        }
+    );
+    
+
+})
+
+exports.ticketsSoldDelTrigger = functions.firestore.document('events/{eventID}/guests/{guestID}').onDelete((snapshot, context) => {
+    guestData = snapshot.data();
+    allowances = guestData.gAllowance;
+    eventID = snapshot.ref.parent.parent.id;
+    uid = guestData.reservedBy;
+
+    return admin.firestore().collection('events').doc(eventID).update(
+        {
+            [`members.${uid}.ticketsSold`] : admin.firestore.FieldValue.increment(-1*allowances),
+        }
+    );
+    
+
+})
+
+

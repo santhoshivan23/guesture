@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:guesture/models/guest.dart';
 import 'package:guesture/providers/guesture_db.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:qrscan/qrscan.dart' as scanner;
 
@@ -44,7 +45,8 @@ class CheckinSubscreen extends StatelessWidget {
                     style: TextStyle(fontSize: 30),
                   ),
                   animateFromLastPercent: true,
-                  percent: double.parse(snapshot.data['checkInFraction'].toString()),
+                  percent:
+                      double.parse(snapshot.data['checkInFraction'].toString()),
                 ),
               ),
               GuestData(eventID: eventID),
@@ -69,21 +71,21 @@ class GuestData extends StatefulWidget {
 class _GuestDataState extends State<GuestData> {
   Guest guest;
   var _loading = false;
-  Future<void> _scan(BuildContext context, String eventID) async {
-    String result = await scanner.scan();
-    final guestID = result.split('%')[0];
+  final gIDController = TextEditingController();
+  final _fKey = GlobalKey<FormState>();
+
+  Future<void> _initiateCheckIn(String guestID) async {
     setState(() {
-      guest = null;
       _loading = true;
+      guest = null;
     });
-    final status = await GuestureDB
-        .checkInGuest(guestID, eventID);
+    final status = await GuestureDB.checkInGuest(guestID, widget.eventID);
     if (status == 0)
       showDialog(
           context: context,
           builder: (ctx) => AlertDialog(
                 title: Text('Attempt of Re-Entry!'),
-                content: Text('Guest has already been check-in'),
+                content: Text('Guest has already checked-in'),
                 actions: <Widget>[
                   FlatButton(
                     child: Text('Close'),
@@ -109,8 +111,13 @@ class _GuestDataState extends State<GuestData> {
                 ],
               ));
     } else {
-      
-      final guestMap = await Firestore.instance.collection('events').document(eventID).collection('guests').document(guestID).get().then((value) => value.data);
+      final guestMap = await Firestore.instance
+          .collection('events')
+          .document(widget.eventID)
+          .collection('guests')
+          .document(guestID)
+          .get()
+          .then((value) => value.data);
       final guestData = Guest(
         gAllowance: guestMap['gAllowance'],
         gEmailID: guestMap['gEmailID'],
@@ -128,6 +135,12 @@ class _GuestDataState extends State<GuestData> {
     setState(() {
       _loading = false;
     });
+  }
+
+  Future<void> _scan() async {
+    String result = await scanner.scan();
+    final guestID = result.split('%')[0];
+    await _initiateCheckIn(guestID);
   }
 
   @override
@@ -153,8 +166,51 @@ class _GuestDataState extends State<GuestData> {
                           'Start scanning tickets to check-in guests',
                           style: TextStyle(fontWeight: FontWeight.w500),
                         ),
-                        buildScanButton(),
-                        if(_loading) Center(child: CircularProgressIndicator(),)
+                        Form(
+                          key: _fKey,
+                          child: Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 10.0),
+                            child: TextFormField(
+                              controller: gIDController,
+                              validator: (id) {
+                                if (id.isEmpty)
+                                  return "Enter a guest ID to check-in";
+                                if (id.length < 10)
+                                  return "Guest ID must be 10 chars long.";
+                                return null;
+                              },
+                              decoration: InputDecoration(
+                                hintText: 'Enter Guest ID (10 characters)',
+                                counterText: 'Manual Check-In',
+                              ),
+                            ),
+                          ),
+                        ),
+                        Row(
+                          children: [
+                            buildScanButton(),
+                            RaisedButton.icon(
+                              icon: Icon(
+                                MdiIcons.pen,
+                                color: Colors.white,
+                              ),
+                              color: Colors.orange,
+                              label: Text(
+                                'Manual Check-In',
+                                style: TextStyle(color: Colors.white),
+                              ),
+                              onPressed: () async {
+                                if (!_fKey.currentState.validate()) return;
+                                await _initiateCheckIn(gIDController.text);
+                              },
+                            ),
+                          ],
+                        ),
+                        if (_loading)
+                          Center(
+                            child: CircularProgressIndicator(),
+                          )
                       ]
                     : [
                         ListTile(
@@ -193,8 +249,26 @@ class _GuestDataState extends State<GuestData> {
                             ),
                           ),
                         ),
-                        buildScanButton(),
-                        if(_loading) Center(child: CircularProgressIndicator(),)
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            buildScanButton(),
+                            RaisedButton.icon(
+                              color: Colors.orange,
+                              label: Text('Go Back',style: TextStyle(color:Colors.white),),
+                              icon: Icon(MdiIcons.arrowLeft,color: Colors.white,),
+                              onPressed: () {
+                                setState(() {
+                                  guest = null;
+                                });
+                              },
+                            )
+                          ],
+                        ),
+                        if (_loading)
+                          Center(
+                            child: CircularProgressIndicator(),
+                          )
                       ],
               ),
             ),
@@ -209,7 +283,7 @@ class _GuestDataState extends State<GuestData> {
       padding: const EdgeInsets.all(15.0),
       child: RaisedButton.icon(
         color: Colors.green,
-        onPressed: () => _scan(context, widget.eventID),
+        onPressed: () => _scan(),
         icon: Icon(
           Icons.camera_enhance,
           color: Colors.white,

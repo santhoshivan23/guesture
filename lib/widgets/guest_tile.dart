@@ -10,6 +10,7 @@ import '../models/transaction.dart' as tx;
 class GuestTile extends StatefulWidget {
   final String gID;
   final String eventID;
+  final String eventName;
   final String gName;
   final String gMobileNumber;
   final String gEmailID;
@@ -21,6 +22,7 @@ class GuestTile extends StatefulWidget {
 
   GuestTile(
       {this.gID,
+      this.eventName,
       this.eventID,
       this.gName,
       this.gMobileNumber,
@@ -159,6 +161,7 @@ class _GuestTileState extends State<GuestTile> {
                             Navigator.of(context)
                                 .pushNamed(QRScreen.routeName, arguments: {
                               'eventID': widget.eventID,
+                              'eventName' : widget.eventName,
                               'guestData': Guest(
                                   gAllowance: widget.gAllowance,
                                   gEmailID: widget.gEmailID,

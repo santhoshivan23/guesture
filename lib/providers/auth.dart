@@ -52,8 +52,7 @@ class Auth with ChangeNotifier {
       return 1;
     }).catchError((err) {
       // if (err.toString().contains('ERROR_INAVLID_EMAIL')) return -1;
-      if(err.toString().contains("ERROR_INVALID_EMAIL"))
-      return -1;
+      if (err.toString().contains("ERROR_INVALID_EMAIL")) return -1;
       return 0;
     });
     return result;
@@ -108,5 +107,13 @@ class Auth with ChangeNotifier {
     await GuestureDB.deleteToken(uid, token);
     await GoogleSignIn().signOut();
     await FirebaseAuth.instance.signOut();
+  }
+
+  Future<void> updateDisplayName(String newName) async {
+    final user = await FirebaseAuth.instance.currentUser();
+    final UserUpdateInfo _userUpdateInfo = UserUpdateInfo();
+    _userUpdateInfo.displayName = newName;
+    await user.updateProfile(_userUpdateInfo);
+    await user.reload();
   }
 }

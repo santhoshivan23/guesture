@@ -16,6 +16,7 @@ class CashConfirmScreen extends StatefulWidget {
 class _CashConfirmScreenState extends State<CashConfirmScreen> {
   Guest guestData;
   String eventID;
+  String eventName;
   var init = false;
   var _loading = false;
 
@@ -26,6 +27,7 @@ class _CashConfirmScreenState extends State<CashConfirmScreen> {
           ModalRoute.of(context).settings.arguments as Map<String, dynamic>;
       guestData = args['guest'];
       eventID = args['eventID'];
+      eventName = args['eventName'];
     }
     init = true;
     super.didChangeDependencies();
@@ -55,6 +57,7 @@ class _CashConfirmScreenState extends State<CashConfirmScreen> {
     Navigator.of(context).pushNamed(QRScreen.routeName, arguments: {
       'guestData': guestData,
       'eventID': eventID,
+      'eventName' : eventName,
     });
   }
 

@@ -7,6 +7,7 @@ import 'package:guesture/models/event.dart';
 import 'package:guesture/models/g_user.dart';
 import 'package:guesture/providers/guesture_db.dart';
 import 'package:intl/intl.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:random_string/random_string.dart';
 
 class AddEventScreen extends StatefulWidget {
@@ -41,44 +42,66 @@ class _AddEventScreenState extends State<AddEventScreen> {
 
     super.dispose();
   }
+
   Future<String> _createInviteLink(String eventID, String role) async {
     final DynamicLinkParameters parameters = DynamicLinkParameters(
         uriPrefix: 'https://guesture.page.link',
-        link: Uri.parse('https://guesture.page.link/workspace?wID=$eventID&role=$role'),
+        link: Uri.parse(
+            'https://guesture.page.link/workspace?wID=$eventID&role=$role'),
         androidParameters: AndroidParameters(
           packageName: 'com.santhoshivan.guesture',
           minimumVersion: 0,
         ));
-    final Uri inviteUrl = await parameters.buildShortLink().then((value) => value.shortUrl);
-    
+    final Uri inviteUrl =
+        await parameters.buildShortLink().then((value) => value.shortUrl);
+
     return inviteUrl.toString();
   }
 
-  Future<void> _fabClicked() async {
+  Future<void> _fabClicked(bool isModify, String oldID) async {
+  
     if (!_formKey.currentState.validate()) return;
     _formKey.currentState.save();
+    if(!isModify) {
+     
     _processingEvent.eventID = randomAlphaNumeric(5);
-    _processingEvent.inviteLinkA = await _createInviteLink(_processingEvent.eventID,'admin');
-    _processingEvent.inviteLinkO = await _createInviteLink(_processingEvent.eventID,'org');
+    
+    _processingEvent.inviteLinkA =
+        await _createInviteLink(_processingEvent.eventID, 'admin');
+    _processingEvent.inviteLinkO =
+        await _createInviteLink(_processingEvent.eventID, 'org');
+    
     Navigator.of(context).pop();
     await GuestureDB.addEvent(_processingEvent);
+    }
+    else {
+      _processingEvent.eventID = oldID;
+      Navigator.of(context).pop();
+      await GuestureDB.modifyEvent(_processingEvent);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final gUser = ModalRoute.of(context).settings.arguments as GUser;
+    final args =
+        ModalRoute.of(context).settings.arguments as Map<String, dynamic>;
+    final gUser = args['gUser'];
+    final isModify = args['isModify'];
+
+    final eventData = args['eventData'] as Event;
+
     return Scaffold(
-      appBar: AppBar(title: const Text('Add a new event')),
+      appBar: AppBar(title:  Text( !isModify ?  'Add a new event' : '${eventData.eventName}')),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       floatingActionButton: FloatingActionButton(
         backgroundColor: Colors.green,
         child: Icon(Icons.done),
-        onPressed: _fabClicked,
+        onPressed: () => isModify ?  _fabClicked(isModify, eventData.eventID) : _fabClicked(isModify, null),
       ),
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
-                  child: Column(
+          child: Column(
             children: <Widget>[
               Padding(
                 padding: const EdgeInsets.all(15.0),
@@ -88,6 +111,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
                   onFieldSubmitted: (_) {
                     FocusScope.of(context).requestFocus(_dtFocusNode);
                   },
+                  initialValue: isModify ? eventData.eventName : null,
                   decoration: InputDecoration(
                     labelText: 'Name of the event',
                     labelStyle: GoogleFonts.notoSans(),
@@ -114,6 +138,8 @@ class _AddEventScreenState extends State<AddEventScreen> {
               Padding(
                 padding: const EdgeInsets.all(15.0),
                 child: DateTimeField(
+                  resetIcon: Icon(MdiIcons.update),
+                  initialValue: isModify ? eventData.startDate : null,
                   format: DateFormat("EEEE, MMMM d, yyyy 'at' h:mma"),
                   onShowPicker: (context, currentValue) async {
                     final date = await showDatePicker(
@@ -156,6 +182,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
               Padding(
                 padding: const EdgeInsets.all(15.0),
                 child: TextFormField(
+                  initialValue: isModify ? eventData.location : null,
                   focusNode: _locationFocusNode,
                   textInputAction: TextInputAction.next,
                   onFieldSubmitted: (_) {
@@ -187,6 +214,8 @@ class _AddEventScreenState extends State<AddEventScreen> {
               Padding(
                 padding: const EdgeInsets.all(15.0),
                 child: TextFormField(
+                  initialValue:
+                      isModify ? eventData.ticketPrice.toString() : null,
                   focusNode: _ticketPriceFocusNode,
                   textInputAction: TextInputAction.done,
                   decoration: InputDecoration(
@@ -195,7 +224,8 @@ class _AddEventScreenState extends State<AddEventScreen> {
                   ),
                   keyboardType: TextInputType.number,
                   validator: (enteredTP) {
-                    if (enteredTP.isEmpty) return 'Ticket Price cannot be empty!';
+                    if (enteredTP.isEmpty)
+                      return 'Ticket Price cannot be empty!';
                     return null;
                   },
                   onSaved: (val) {

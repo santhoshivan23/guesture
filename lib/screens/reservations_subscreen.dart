@@ -5,8 +5,10 @@ import 'package:guesture/widgets/guest_tile.dart';
 
 class ReservationsSubScreen extends StatelessWidget {
   final String eventID;
+  final String eventName;
   final bool isAdmin;
-  ReservationsSubScreen({this.eventID, this.isAdmin});
+  final String myUid;
+  ReservationsSubScreen({this.eventID, this.isAdmin,this.myUid,this.eventName});
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +31,7 @@ class ReservationsSubScreen extends StatelessWidget {
                     itemCount: snapshot.data.documents.length,
                     itemBuilder: (ctx, index) => GuestTile(
                       gID: snapshot.data.documents[index].documentID,
+                      eventName : eventName,
                       eventID: eventID,
                       gName: snapshot.data.documents[index]['gName'],
                       gEmailID: snapshot.data.documents[index]['gEmailID'],
@@ -49,7 +52,11 @@ class ReservationsSubScreen extends StatelessWidget {
         child: Icon(Icons.person_add),
         onPressed: () {
           Navigator.of(context)
-              .pushNamed(NewReservationScreen.routeName, arguments: eventID);
+              .pushNamed(NewReservationScreen.routeName, arguments: {
+                'eventID' : eventID,
+                'eventName' : eventName,
+                'myUid' : myUid,
+              });
         },
       ),
     );

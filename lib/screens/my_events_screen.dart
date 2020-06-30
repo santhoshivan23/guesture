@@ -9,6 +9,7 @@ import 'package:guesture/providers/guesture_db.dart';
 import 'package:guesture/screens/add_event_screen.dart';
 import 'package:guesture/screens/manage_standard.dart';
 import 'package:guesture/screens/notifications_screen.dart';
+import 'package:guesture/screens/profile_page.dart';
 import 'package:guesture/widgets/event_tile.dart';
 import 'package:guesture/widgets/guesture_avatar.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
@@ -162,14 +163,14 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
           )
         ],
       ),
-      drawer: GuestureDrawer(gUser: widget.gUser),
+      drawer: GuestureDrawer(),
       body: Padding(
         padding: const EdgeInsets.symmetric(vertical: 15.0),
         child: StreamBuilder(
           stream: Firestore.instance.collection('events')
 
               ///.where('uid', isEqualTo: gUser.uid)
-              .where('members.' + widget.gUser.uid, whereIn: [
+              .where('members.${widget.gUser.uid}.role', whereIn: [
             'admin',
             'org',
             'requested-admin',
@@ -231,6 +232,7 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                                 : 'Your administrator hasn\'t created any event.'),
                           )
                 : ListView.builder(
+                    physics: BouncingScrollPhysics(),
                     shrinkWrap: true,
                     itemCount: eventsData.length,
                     itemBuilder: (ctx, index) => EventTile(
@@ -241,30 +243,34 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                       access: eventsData[index].access,
                       isAdmin: widget.gUser.isAdmin,
                       role: eventsData[index].role,
+                      myUid: widget.gUser.uid,
+                      ticketPrice: eventsData[index].ticketPrice,
                     ),
                   );
           },
         ),
       ),
-      floatingActionButton: !widget.gUser.isAdmin
-          ? null
-          : FloatingActionButton(
-              backgroundColor: Colors.deepPurple,
-              child: Icon(Icons.add),
-              onPressed: () {
-                Navigator.of(context).pushNamed(AddEventScreen.routeName,
-                    arguments: widget.gUser);
-              }),
+      floatingActionButton: FloatingActionButton(
+          backgroundColor: Colors.deepPurple,
+          child: Icon(Icons.add),
+          onPressed: () {
+            Navigator.of(context)
+                .pushNamed(AddEventScreen.routeName, arguments: {
+              'gUser': widget.gUser,
+              'isModify': false,
+            });
+          }),
     );
   }
 }
 
 class GuestureDrawer extends StatelessWidget {
-  final GUser gUser;
+ 
 
-  GuestureDrawer({this.gUser});
+  
   @override
   Widget build(BuildContext context) {
+    final gUser = Provider.of<GUser>(context);
     return Container(
       width: MediaQuery.of(context).size.width * 0.6,
       decoration: BoxDecoration(color: Colors.white),
@@ -280,22 +286,32 @@ class GuestureDrawer extends StatelessWidget {
         ),
         body: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: GuestureAvatar(
-                  gUser.photoUrl, gUser.displayName, gUser.email, 50),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ListTile(
-                title: Text(
-                  gUser.displayName == null ? 'NA' : gUser.displayName,
-                  textAlign: TextAlign.center,
-                ),
-                subtitle: Text(
-                  gUser.email,
-                  textAlign: TextAlign.center,
-                ),
+            InkWell(
+              onTap: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pushNamed(ProfilePage.routeName,arguments: gUser);
+              },
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: GuestureAvatar(
+                        gUser.photoUrl, gUser.displayName, gUser.email, 50),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: ListTile(
+                      title: Text(
+                        gUser.displayName == null ? 'NA' : gUser.displayName,
+                        textAlign: TextAlign.center,
+                      ),
+                      subtitle: Text(
+                        gUser.email,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             Divider(),

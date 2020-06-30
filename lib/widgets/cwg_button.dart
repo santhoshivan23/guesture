@@ -8,9 +8,13 @@ class CWGButton extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(15),
       child: InkWell(
-        onTap: () => Auth().signInWithGoogle(context),
-              child: Image.asset(
-          'assets/google.png',scale: 2,
+        onTap: () async {
+          await Auth().signInWithGoogle(context);
+          Navigator.of(context).pop();
+        },
+        child: Image.asset(
+          'assets/google.png',
+          scale: 2,
         ),
       ),
     );
