@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_admob/firebase_admob.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -7,11 +8,12 @@ import 'package:guesture/models/g_user.dart';
 import 'package:guesture/providers/auth.dart';
 import 'package:guesture/providers/guesture_db.dart';
 import 'package:guesture/screens/add_event_screen.dart';
-import 'package:guesture/screens/manage_standard.dart';
 import 'package:guesture/screens/notifications_screen.dart';
 import 'package:guesture/screens/profile_page.dart';
+import 'package:guesture/services/admob.dart';
 import 'package:guesture/widgets/event_tile.dart';
 import 'package:guesture/widgets/guesture_avatar.dart';
+import 'package:guesture/widgets/notif_counter.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -27,11 +29,46 @@ class MyEventsScreen extends StatefulWidget {
 
 class _MyEventsScreenState extends State<MyEventsScreen> {
   var _filterindex = 0;
-
+  BannerAd _bannerAd;
+  final _key = GlobalKey<ScaffoldState>();
+  final ams = AdMobService();
+  static const MobileAdTargetingInfo targetingInfo = MobileAdTargetingInfo(
+    testDevices: <String>['FDEA28183E85C0246AFC385DD539453C','08F97A3F50B1A9056804BEBB2AB80902','4A6014F8ED0B533145242BE3600EC087'],
+    keywords: [
+      'event',
+      'management',
+      'hotels',
+      'bookings',
+      'tour',
+      'flights',
+      'shopping',
+      'trains',
+      'government',
+      'cars',
+      'travel'
+    ],
+  );
   @override
   void initState() {
     fetchLinkData();
+    _bannerAd = BannerAd(
+        adUnitId: ams.getBannerAdId(),
+        size: AdSize.banner,
+        targetingInfo: targetingInfo);
+    loadbannerAd();
     super.initState();
+  }
+
+  void loadbannerAd() {
+    _bannerAd
+      ..load()
+      ..show();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd.dispose();
+    super.dispose();
   }
 
   void fetchLinkData() async {
@@ -125,8 +162,12 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: _key,
       appBar: AppBar(
-        title: const Text('My Events'),
+        title: Padding(
+          padding: const EdgeInsets.only(bottom: 18.0),
+          child: const Text('My Events'),
+        ),
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(colors: [
@@ -163,9 +204,9 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
           )
         ],
       ),
-      drawer: GuestureDrawer(),
+      drawer: GuestureDrawer(homeKey: _key),
       body: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 15.0),
+        padding: const EdgeInsets.symmetric(vertical: 0.0),
         child: StreamBuilder(
           stream: Firestore.instance.collection('events')
 
@@ -231,27 +272,55 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
                                 ? 'You don\'t have any events. Start Organizing!'
                                 : 'Your administrator hasn\'t created any event.'),
                           )
-                : ListView.builder(
-                    physics: BouncingScrollPhysics(),
-                    shrinkWrap: true,
-                    itemCount: eventsData.length,
-                    itemBuilder: (ctx, index) => EventTile(
-                      eventID: eventsData[index].eventID,
-                      eventLocation: eventsData[index].location,
-                      eventName: eventsData[index].eventName,
-                      startDate: eventsData[index].startDate,
-                      access: eventsData[index].access,
-                      isAdmin: widget.gUser.isAdmin,
-                      role: eventsData[index].role,
-                      myUid: widget.gUser.uid,
-                      ticketPrice: eventsData[index].ticketPrice,
-                    ),
+                : Stack(
+                    children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.deepPurple,
+                              Colors.deepPurple.withOpacity(0.5),
+                              Colors.indigo
+                            ],
+                            end: Alignment.bottomCenter,
+                            begin: Alignment.topCenter,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                            borderRadius:
+                                BorderRadius.vertical(top: Radius.circular(30)),
+                            color: Colors.white),
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 20.0),
+                          child: ListView.builder(
+                            physics: BouncingScrollPhysics(),
+                            shrinkWrap: false,
+                            itemCount: eventsData.length,
+                            itemBuilder: (ctx, index) => EventTile(
+                              eventID: eventsData[index].eventID,
+                              eventLocation: eventsData[index].location,
+                              eventName: eventsData[index].eventName,
+                              startDate: eventsData[index].startDate,
+                              access: eventsData[index].access,
+                              isAdmin: widget.gUser.isAdmin,
+                              role: eventsData[index].role,
+                              myUid: widget.gUser.uid,
+                              ticketPrice: eventsData[index].ticketPrice,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   );
           },
         ),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerTop,
       floatingActionButton: FloatingActionButton(
-          backgroundColor: Colors.deepPurple,
+          mini: true,
+          backgroundColor: Colors.pink.withBlue(100),
           child: Icon(Icons.add),
           onPressed: () {
             Navigator.of(context)
@@ -265,11 +334,11 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
 }
 
 class GuestureDrawer extends StatelessWidget {
- 
-
-  
+  final GlobalKey<ScaffoldState> homeKey;
+  GuestureDrawer({this.homeKey});
   @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
     final gUser = Provider.of<GUser>(context);
     return Container(
       width: MediaQuery.of(context).size.width * 0.6,
@@ -284,180 +353,277 @@ class GuestureDrawer extends StatelessWidget {
           centerTitle: true,
           automaticallyImplyLeading: false,
         ),
-        body: Column(
-          children: [
-            InkWell(
-              onTap: () {
-                Navigator.of(context).pop();
-                Navigator.of(context).pushNamed(ProfilePage.routeName,arguments: gUser);
-              },
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: GuestureAvatar(
-                        gUser.photoUrl, gUser.displayName, gUser.email, 50),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: ListTile(
-                      title: Text(
-                        gUser.displayName == null ? 'NA' : gUser.displayName,
-                        textAlign: TextAlign.center,
-                      ),
-                      subtitle: Text(
-                        gUser.email,
-                        textAlign: TextAlign.center,
-                      ),
+        body: SingleChildScrollView(
+                  child: Column(
+            children: [
+              InkWell(
+                onTap: () {
+                  Navigator.of(context).pop();
+                  Navigator.of(context)
+                      .pushNamed(ProfilePage.routeName, arguments: homeKey);
+                },
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: EdgeInsets.all(height * 0.01),
+                      child: GuestureAvatar(gUser.photoUrl, gUser.displayName,
+                          gUser.email, height * 0.06),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            Divider(),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ListTile(
-                onTap: () {
-                  Navigator.of(context).pop();
-                  Navigator.of(context).pushNamed(NotificationsScreen.routeName,
-                      arguments: gUser.uid);
-                  // Navigator.of(context)
-                  //     .pushNamed(ManageStandard.routeName, arguments: gUser);
-                },
-                leading: Icon(MdiIcons.bell, color: Colors.orange),
-                title: Text(
-                  'Notifications',
-                  textAlign: TextAlign.center,
+                    ListTile(
+                        title: Text(
+                          gUser.displayName == null
+                              ? gUser.email.split('@')[0]
+                              : gUser.displayName,
+                          textAlign: TextAlign.center,
+                        ),
+                        subtitle: FittedBox(
+                                                  child: Text(
+                            gUser.email,
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    
+                  ],
                 ),
               ),
-            ),
-            Divider(),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ListTile(
-                onTap: () {
-                  Navigator.of(context).pop();
-                  // Navigator.of(context)
-                  //     .pushNamed(ManageStandard.routeName, arguments: gUser);
-                },
-                leading: Icon(MdiIcons.security, color: Colors.green),
-                title: Text(
-                  'Privacy Policy',
-                  textAlign: TextAlign.center,
-                ),
+              Divider(
+                height: 1,
               ),
-            ),
-            Divider(),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ListTile(
-                leading: Icon(Icons.info, color: Colors.blue),
-                onTap: () {
-                  Navigator.of(context).pop();
-                  showDialog(
+              ListTile(
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    showDialog(
                       context: context,
                       builder: (ctx) => SimpleDialog(
-                            title: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: <Widget>[
-                                CircleAvatar(
-                                  backgroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15)),
+                        titlePadding: EdgeInsets.all(6),
+                        title: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          children: [
+                            Text(
+                              'G+',
+                              style: GoogleFonts.pacifico(color: Colors.pink),
+                            ),
+                            Text(
+                              'Guesture Prime',
+                              textAlign: TextAlign.center,
+                              style:
+                                  GoogleFonts.pacifico(color: Colors.deepPurple),
+                            ),
+                          ],
+                        ),
+                        children: [
+                          Padding(
+                            padding:  EdgeInsets.all(height * 0.007),
+                            child: Text(
+                              "Enjoy exclusive benefits!",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                          buildFeaturesPrime('  -   Ad-free'),
+                          buildFeaturesPrime(
+                              '  -   Unlimited members in workspace'),
+                          buildFeaturesPrime(
+                              '  -   Generate class of tickets with multiple prices'),
+                          buildFeaturesPrime(
+                              '  -   Receive payments through UPI'),
+                          buildFeaturesPrime('                 and much more'),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Center(
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.pink,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(6.0),
                                   child: Text(
-                                    'G',
-                                    style: GoogleFonts.pacifico(),
+                                    'Stay tuned!',
+                                    style: TextStyle(color: Colors.white),
                                   ),
                                 ),
-                                Text(
-                                  'Guesture',
-                                  textAlign: TextAlign.center,
-                                ),
-                              ],
+                              ),
                             ),
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(5.0),
-                                child: Text(
-                                  'v1.0.0',
-                                  textAlign: TextAlign.center,
-                                ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  leading: Text(
+                    'G+',
+                    style: GoogleFonts.pacifico(color: Colors.pink),
+                  ),
+                  title: Text(
+                    'Guesture Prime',
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.pacifico(color: Colors.deepPurple),
+                  ),
+                  subtitle: Text(
+                    'Enjoy exclusive benefits!',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 10),
+                  ),
+                ),
+              
+              Divider(
+                height: 1,
+              ),
+              ListTile(
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    Navigator.of(context).pushNamed(NotificationsScreen.routeName,
+                        arguments: gUser.uid);
+                    // Navigator.of(context)
+                    //     .pushNamed(ManageStandard.routeName, arguments: gUser);
+                  },
+                  leading: NotifCounter(),
+                  title: Text(
+                    'Notifications',
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              
+              Divider(
+                height: 1,
+              ),
+               ListTile(
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    // Navigator.of(context)
+                    //     .pushNamed(ManageStandard.routeName, arguments: gUser);
+                  },
+                  leading: Icon(MdiIcons.security, color: Colors.green),
+                  title: Text(
+                    'Privacy Policy',
+                    textAlign: TextAlign.center,
+                  ),
+                ),
+              
+              Divider(
+                height: 1,
+              ),
+             ListTile(
+                  leading: Icon(Icons.info, color: Colors.blue),
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    showDialog(
+                        context: context,
+                        builder: (ctx) => SimpleDialog(
+                              title: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: <Widget>[
+                                  CircleAvatar(
+                                    backgroundColor: Colors.white,
+                                    child: Text(
+                                      'G',
+                                      style: GoogleFonts.pacifico(),
+                                    ),
+                                  ),
+                                  Text(
+                                    'Guesture',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ],
                               ),
-                              Padding(
-                                padding: const EdgeInsets.all(5.0),
-                                child: Text(
-                                  'Developed by \n Santhoshivan, MIT Manipal',
-                                  textAlign: TextAlign.center,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(5.0),
+                                  child: Text(
+                                    'v1.0.0',
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.all(5.0),
-                                child: GestureDetector(
-                                  onTap: _toLinkedInPage,
-                                  child: Center(
-                                    child: Container(
-                                        decoration: BoxDecoration(
-                                          color: Colors.indigo,
-                                          borderRadius:
-                                              BorderRadius.circular(15),
-                                        ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(5.0),
-                                          child: FittedBox(
-                                            child: Padding(
-                                              padding:
-                                                  const EdgeInsets.all(3.0),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceAround,
-                                                children: <Widget>[
-                                                  Icon(
-                                                    Icons.developer_mode,
-                                                    color: Colors.white,
-                                                  ),
-                                                  Text(
-                                                    'LinkedIn Profile ',
-                                                    style: TextStyle(
-                                                        color: Colors.white),
-                                                    textAlign: TextAlign.center,
-                                                  ),
-                                                ],
+                                Padding(
+                                  padding: const EdgeInsets.all(5.0),
+                                  child: Text(
+                                    'Developed by \n Santhoshivan, MIT Manipal',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.all(5.0),
+                                  child: GestureDetector(
+                                    onTap: _toLinkedInPage,
+                                    child: Center(
+                                      child: Container(
+                                          decoration: BoxDecoration(
+                                            color: Colors.indigo,
+                                            borderRadius:
+                                                BorderRadius.circular(15),
+                                          ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(5.0),
+                                            child: FittedBox(
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(3.0),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceAround,
+                                                  children: <Widget>[
+                                                    Icon(
+                                                      Icons.developer_mode,
+                                                      color: Colors.white,
+                                                    ),
+                                                    Text(
+                                                      'LinkedIn Profile ',
+                                                      style: TextStyle(
+                                                          color: Colors.white),
+                                                      textAlign: TextAlign.center,
+                                                    ),
+                                                  ],
+                                                ),
                                               ),
                                             ),
-                                          ),
-                                        )),
+                                          )),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ));
-                },
-                title: Text(
-                  'About Guesture',
-                  textAlign: TextAlign.center,
+                              ],
+                            ));
+                  },
+                  title: Text(
+                    'About Guesture',
+                    textAlign: TextAlign.center,
+                  ),
                 ),
+              
+              Divider(
+                height: 1,
               ),
-            ),
-            Divider(),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ListTile(
-                leading: Icon(
-                  Icons.power_settings_new,
-                  color: Colors.red,
+              ListTile(
+                  leading: Icon(
+                    Icons.power_settings_new,
+                    color: Colors.red,
+                  ),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    await Auth().logout(gUser.uid);
+                  },
+                  title: Text(
+                    'Log Out',
+                    textAlign: TextAlign.center,
+                  ),
                 ),
-                onTap: () async {
-                  Navigator.pop(context);
-                  await Auth().logout(gUser.uid);
-                },
-                title: Text(
-                  'Log Out',
-                  textAlign: TextAlign.center,
-                ),
-              ),
-            ),
-          ],
+              
+            ],
+          ),
         ),
+      ),
+    );
+  }
+
+  Padding buildFeaturesPrime(String content) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 10.0, vertical: 4.0),
+      child: Text(
+        content,
+        style: TextStyle(fontSize: 12),
       ),
     );
   }

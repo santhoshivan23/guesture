@@ -6,6 +6,7 @@ class GNotification {
   final String timestamp;
   final String eventID;
   final String role;
+  final String sender;
 
-  GNotification({this.id,this.type,this.title,this.content,this.timestamp,this.eventID,this.role});
+  GNotification({this.id,this.type,this.title,this.content,this.timestamp,this.eventID,this.role,this.sender});
 }

@@ -1,3 +1,4 @@
+import 'package:firebase_admob/firebase_admob.dart';
 import 'package:flutter/material.dart';
 import 'package:guesture/providers/auth.dart';
 import 'package:guesture/screens/add_event_screen.dart';
@@ -13,11 +14,14 @@ import 'package:guesture/screens/notifications_screen.dart';
 import 'package:guesture/screens/onboarding_scree.dart';
 import 'package:guesture/screens/profile_page.dart';
 import 'package:guesture/screens/qr_screen.dart';
+import 'package:guesture/services/admob.dart';
 import 'package:provider/provider.dart';
 
 import 'models/g_user.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
+   FirebaseAdMob.instance.initialize(appId: AdMobService().getAdMobAppId());
   runApp(MyApp());
 }
 

@@ -13,6 +13,7 @@ class CheckinSubscreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
     return StreamBuilder(
         stream: Firestore.instance
             .collection('events')
@@ -25,19 +26,19 @@ class CheckinSubscreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[
               Padding(
-                padding: const EdgeInsets.all(18.0),
+                padding: EdgeInsets.all(height * 0.021),
                 child: CircularPercentIndicator(
                   animation: true,
                   animationDuration: 1000,
                   lineWidth: 7,
                   footer: Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding:  EdgeInsets.all(height * 0.001),
                     child: Text(
                       'Percentage of guests checked-in',
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
-                  radius: 200,
+                  radius: height * 0.238,
                   center: Text(
                     (100 * snapshot.data['checkInFraction'])
                             .toStringAsFixed(0) +
@@ -49,7 +50,7 @@ class CheckinSubscreen extends StatelessWidget {
                       double.parse(snapshot.data['checkInFraction'].toString()),
                 ),
               ),
-              GuestData(eventID: eventID),
+               GuestData(eventID: eventID),
             ],
           );
         });
@@ -145,9 +146,10 @@ class _GuestDataState extends State<GuestData> {
 
   @override
   Widget build(BuildContext context) {
+    final height  = MediaQuery.of(context).size.height;
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+        padding:  EdgeInsets.symmetric(horizontal: height * 0.024),
         child: Container(
           height: double.infinity,
           width: double.infinity,
@@ -157,20 +159,20 @@ class _GuestDataState extends State<GuestData> {
           ),
           child: SingleChildScrollView(
             child: Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding:  EdgeInsets.all(height* 0.001),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: guest == null
                     ? <Widget>[
                         Text(
-                          'Start scanning tickets to check-in guests',
+                          'Scan tickets / Manual Check-in',
                           style: TextStyle(fontWeight: FontWeight.w500),
                         ),
                         Form(
                           key: _fKey,
                           child: Padding(
                             padding:
-                                const EdgeInsets.symmetric(horizontal: 10.0),
+                                 EdgeInsets.symmetric(horizontal: height * 0.012),
                             child: TextFormField(
                               controller: gIDController,
                               validator: (id) {
@@ -188,23 +190,27 @@ class _GuestDataState extends State<GuestData> {
                           ),
                         ),
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
                             buildScanButton(),
-                            RaisedButton.icon(
-                              icon: Icon(
-                                MdiIcons.pen,
-                                color: Colors.white,
+                             RaisedButton.icon(
+                                icon: Icon(
+                                  MdiIcons.pen,
+                                  color: Colors.white,
+                                ),
+                                color: Colors.orange,
+                                label: FittedBox(
+                                                                  child: Text(
+                                    'Manual',
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ),
+                                onPressed: () async {
+                                  if (!_fKey.currentState.validate()) return;
+                                  await _initiateCheckIn(gIDController.text);
+                                },
                               ),
-                              color: Colors.orange,
-                              label: Text(
-                                'Manual Check-In',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                              onPressed: () async {
-                                if (!_fKey.currentState.validate()) return;
-                                await _initiateCheckIn(gIDController.text);
-                              },
-                            ),
+                            
                           ],
                         ),
                         if (_loading)
@@ -241,7 +247,7 @@ class _GuestDataState extends State<GuestData> {
                               border: Border.all(color: Colors.black, width: 3),
                               borderRadius: BorderRadius.circular(20)),
                           child: Padding(
-                            padding: const EdgeInsets.all(15.0),
+                            padding:  EdgeInsets.all(height * 0.018),
                             child: Text(
                               'PERMIT  ${guest.gAllowance.toString()}',
                               textAlign: TextAlign.center,
@@ -279,8 +285,9 @@ class _GuestDataState extends State<GuestData> {
   }
 
   Widget buildScanButton() {
+    final height = MediaQuery.of(context).size.height;
     return Padding(
-      padding: const EdgeInsets.all(15.0),
+      padding:  EdgeInsets.all(height * 0.018),
       child: RaisedButton.icon(
         color: Colors.green,
         onPressed: () => _scan(),

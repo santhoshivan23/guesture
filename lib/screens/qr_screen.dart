@@ -1,15 +1,11 @@
 import 'dart:io';
-import 'dart:typed_data';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_open_whatsapp/flutter_open_whatsapp.dart';
-import 'package:flutter_share/flutter_share.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:guesture/models/event.dart';
 import 'package:guesture/models/guest.dart';
 import 'package:guesture/screens/event_overview_screen.dart';
-import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:intl/intl.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -326,13 +322,17 @@ class QRScreen extends StatelessWidget {
             },
           ),
           floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-          floatingActionButton: FloatingActionButton(
-            backgroundColor: Colors.green,
-            child: Icon(MdiIcons.home),
-            onPressed: () {
-              Navigator.of(context)
-                  .popUntil(ModalRoute.withName(EventOverviewScreen.routeName));
-            },
+          floatingActionButton: Padding(
+            padding: const EdgeInsets.only(bottom : 35.0),
+            child: FloatingActionButton(
+              mini: true,
+              backgroundColor: Colors.pink,
+              child: Icon(MdiIcons.home),
+              onPressed: () {
+                Navigator.of(context)
+                    .popUntil(ModalRoute.withName(EventOverviewScreen.routeName));
+              },
+            ),
           ),
         ),
       ),

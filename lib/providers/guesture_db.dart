@@ -216,7 +216,7 @@ class GuestureDB {
   }
 
   static Future<void> sendInvite(
-      String uid, String role, String eventID, String wsName) async {
+      String uid, String role, String eventID, String wsName,) async {
     final eventRef =
         await Firestore.instance.collection('events').document(eventID).get();
     DocumentReference userRef =
@@ -232,9 +232,9 @@ class GuestureDB {
         'members': membersMap,
       },
     );
+    final sender = await FirebaseAuth.instance.currentUser();
+    final inviterName = sender.displayName == null ? sender.email.split('@')[0]: sender.displayName;
 
-    final inviterName = await FirebaseAuth.instance.currentUser().then(
-        (value) => value.displayName == null ? value.email : value.displayName);
     final notification = GNotification(
       title: '$inviterName sent you a request',
       content: '$inviterName invited you to join their workspace - $wsName',
@@ -242,6 +242,7 @@ class GuestureDB {
       eventID: eventID,
       role: role,
       type: 'invite',
+      sender: sender.uid,
     );
 
     await pushNotification(notification, [uid]);
@@ -262,7 +263,9 @@ class GuestureDB {
         'timestamp': notification.timestamp,
         'eventID': notification.eventID,
         'role': notification.role,
+        'sender': notification.sender
       });
+      await incrementCounter(uid);
     }
   }
 
@@ -275,12 +278,41 @@ class GuestureDB {
         .delete();
   }
 
+  static Future<void> resetNotifCounter(String uid) async {
+    await Firestore.instance.collection('users').document(uid).updateData({
+      'notifCounter': 0,
+    });
+  }
+
+  static Future<void> incrementCounter(String uid) async {
+    await Firestore.instance.collection('users').document(uid).updateData({
+      'notifCounter': FieldValue.increment(1),
+    });
+  }
+
+  static Future<void> clearNotifs(String uid) async {
+    final docs = await Firestore.instance
+        .collection('users')
+        .document(uid)
+        .collection('notifications')
+        .where('type', whereIn: ['role-change','others']).getDocuments();
+    for (var doc in docs.documents) {
+      await Firestore.instance
+          .collection('users')
+          .document(uid)
+          .collection('notifications')
+          .document(doc.documentID)
+          .delete();
+    }
+  }
+
   static Future<int> updateRole(
       String uid, String eventID, String newRole) async {
     final eventRef =
         await Firestore.instance.collection('events').document(eventID).get();
-    Map<String, dynamic> membersMap = eventRef.data['members'];
 
+    Map<String, dynamic> membersMap = eventRef.data['members'];
+    if (uid == eventRef.data['uid']) return 0;
     if (membersMap.containsKey(uid)) {
       if (newRole == 'REMOVE') {
         if (eventRef.data['uid'] == uid) return 0;
@@ -349,6 +381,4 @@ class GuestureDB {
       await tokensRef.reference.delete();
     }
   }
-
-  
 }

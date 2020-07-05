@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:guesture/models/g_user.dart';
 import 'package:guesture/models/guest.dart';
 import 'package:guesture/screens/cash_confirm_screen.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:random_string/random_string.dart';
 
@@ -79,15 +80,14 @@ class _NewReservationScreenState extends State<NewReservationScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.deepPurple,
         title: const Text('New Reservation'),
         centerTitle: true,
+        actions: [
+          IconButton(icon: Icon(Icons.done,color: Colors.white,), onPressed: () => _fabClicked(context, eventID,myUid,eventName),)
+        ],
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.green,
-        onPressed: () => _fabClicked(context, eventID,myUid,eventName),
-        child: Icon(Icons.arrow_forward),
-      ),
+      
       body: SingleChildScrollView(
         child: Form(
           key: _formKey,
@@ -104,6 +104,7 @@ class _NewReservationScreenState extends State<NewReservationScreen> {
                     FocusScope.of(context).requestFocus(_guestEmailIDFocusNode);
                   },
                   decoration: InputDecoration(
+                    prefixIcon: Icon(MdiIcons.account,color: Colors.pink,),
                     labelText: 'Full Name',
                     labelStyle: GoogleFonts.notoSans(),
                   ),
@@ -139,6 +140,7 @@ class _NewReservationScreenState extends State<NewReservationScreen> {
                   decoration: InputDecoration(
                     labelText: 'Email ID',
                     labelStyle: GoogleFonts.notoSans(),
+                    prefixIcon: Icon(MdiIcons.email,color: Colors.pink,),
                   ),
                   onSaved: (val) {
                     _processingGuest = Guest(
@@ -163,6 +165,7 @@ class _NewReservationScreenState extends State<NewReservationScreen> {
                   decoration: InputDecoration(
                     labelText: 'Organization',
                     labelStyle: GoogleFonts.notoSans(),
+                    prefixIcon: Icon(MdiIcons.officeBuilding,color: Colors.pink,),
                   ),
                   onFieldSubmitted: (_) {
                     FocusScope.of(context)
@@ -198,6 +201,7 @@ class _NewReservationScreenState extends State<NewReservationScreen> {
                   decoration: InputDecoration(
                     labelText: 'Mobile Number',
                     labelStyle: GoogleFonts.notoSans(),
+                    prefixIcon: Icon(MdiIcons.phone,color: Colors.pink,),
                   ),
                   keyboardType: TextInputType.number,
                   validator: (enteredMN) {
@@ -233,6 +237,7 @@ class _NewReservationScreenState extends State<NewReservationScreen> {
                   decoration: InputDecoration(
                     labelText: 'Allowance',
                     labelStyle: GoogleFonts.notoSans(),
+                    prefixIcon: Icon(Icons.people,color: Colors.pink,),
                   ),
                   keyboardType: TextInputType.number,
                   validator: (val) {

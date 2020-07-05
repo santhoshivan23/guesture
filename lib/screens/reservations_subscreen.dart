@@ -28,6 +28,7 @@ class ReservationsSubScreen extends StatelessWidget {
                     child: Text('There are no reservations for this event.'))
                 : ListView.builder(
                     shrinkWrap: true,
+                    physics: BouncingScrollPhysics(),
                     itemCount: snapshot.data.documents.length,
                     itemBuilder: (ctx, index) => GuestTile(
                       gID: snapshot.data.documents[index].documentID,

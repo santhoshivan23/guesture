@@ -36,7 +36,7 @@ class EventTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final gUser = Provider.of<GUser>(context);
-   
+
     return ListTile(
       onTap: () {
         if (access)
@@ -50,20 +50,26 @@ class EventTile extends StatelessWidget {
         else
           Scaffold.of(context).showSnackBar(SnackBar(
             backgroundColor: Colors.red,
-            content: Text(
-              'Acess Denied!\nWorkspace administrator is yet to approve your request.',
-              textAlign: TextAlign.center,
+            content: Padding(
+              padding: const EdgeInsets.only(bottom : 50.0),
+              child: Text(
+                'Acess Denied!\nWorkspace administrator is yet to approve your request.',
+                textAlign: TextAlign.center,
+              ),
             ),
           ));
       },
-      onLongPress: !access
+      onLongPress: !(role == 'admin')
           ? null
           : () {
               showDialog(
                   context: context,
                   builder: (ctx) => AlertDialog(
-                        title: Text(eventName),
-                        content: Text('Delete or Modify Event'),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        title: Text(eventName,style: TextStyle(fontWeight: FontWeight.bold),),
+                        content: Text('Delete or Modify event'),
                         actions: <Widget>[
                           FlatButton(
                             child: Text(
@@ -75,6 +81,9 @@ class EventTile extends StatelessWidget {
                                   barrierDismissible: false,
                                   context: ctx,
                                   builder: (c) => AlertDialog(
+                                        shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(20)),
                                         title: Text(
                                           'Confirm Deletion',
                                           style: TextStyle(
@@ -111,18 +120,21 @@ class EventTile extends StatelessWidget {
                             child: Text('Modify'),
                             onPressed: () {
                               Navigator.of(context).pop();
-                              Navigator.of(context).pushNamed(AddEventScreen.routeName,arguments: {
-                                'gUser' : gUser,
-                                'isModify' : true,
-                                'eventData' : Event(
-                                  eventName: eventName,
-                                  location: eventLocation,
-                                  startDate: startDate,
-                                  startTime: TimeOfDay.fromDateTime(startDate),
-                                  ticketPrice: ticketPrice,
-                                  eventID: eventID,
-                                ),
-                              });
+                              Navigator.of(context).pushNamed(
+                                  AddEventScreen.routeName,
+                                  arguments: {
+                                    'gUser': gUser,
+                                    'isModify': true,
+                                    'eventData': Event(
+                                      eventName: eventName,
+                                      location: eventLocation,
+                                      startDate: startDate,
+                                      startTime:
+                                          TimeOfDay.fromDateTime(startDate),
+                                      ticketPrice: ticketPrice,
+                                      eventID: eventID,
+                                    ),
+                                  });
                             },
                           ),
                         ],
@@ -147,7 +159,7 @@ class EventTile extends StatelessWidget {
               child: Padding(
                   padding: const EdgeInsets.all(4.0),
                   child: Text(
-                    'Requested Access',
+                    'Requested',
                     style: TextStyle(fontSize: 10, color: Colors.white),
                   )),
             ),

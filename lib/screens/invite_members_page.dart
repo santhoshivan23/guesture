@@ -1,14 +1,21 @@
+
+
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_admob/firebase_admob.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_share/flutter_share.dart';
 import 'package:guesture/models/g_user.dart';
 import 'package:guesture/providers/guesture_db.dart';
+import 'package:guesture/services/admob.dart';
 import 'package:guesture/widgets/user_tile.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
 class InviteMembersPage extends StatelessWidget {
+  
   static const routeName = '/invite-members';
+
   Future<String> _fetchInviteLink(String eventID, String role) async {
     String link;
     if (role == 'admin') {
@@ -31,8 +38,11 @@ class InviteMembersPage extends StatelessWidget {
         text: 'Hey! Click this link and join my workspace on Guesture!');
   }
 
+  
+  
   @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
     final args = ModalRoute.of(context).settings.arguments as Map<String,String>;
     final eventID = args['eventID'];
     final eventName = args['eventName'];
@@ -54,11 +64,9 @@ class InviteMembersPage extends StatelessWidget {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            SizedBox(
-              height: 10,
-            ),
+            
             Padding(
-              padding: const EdgeInsets.all(8.0),
+              padding:  EdgeInsets.all(height *0.001),
               child: Center(
                   child: Column(
                 children: [
@@ -88,10 +96,10 @@ class InviteMembersPage extends StatelessWidget {
                   ),
                   SearchUsers(eventID: eventID,eventName: eventName),
                   SizedBox(
-                    height: 10,
+                    height: height * 0.012,
                   ),
                   Padding(
-                    padding: const EdgeInsets.all(8.0),
+                    padding:  EdgeInsets.all(height*0.001),
                     child: Row(
                       children: <Widget>[
                         Expanded(
@@ -101,7 +109,7 @@ class InviteMembersPage extends StatelessWidget {
                           ),
                         ),
                         Padding(
-                          padding: const EdgeInsets.all(8.0),
+                          padding:  EdgeInsets.all(height * 0.001),
                           child: Text(
                             'OR',
                           ),
@@ -123,17 +131,17 @@ class InviteMembersPage extends StatelessWidget {
                         color: Colors.deepPurple),
                   ),
                   SizedBox(
-                    height: 10,
+                    height: height * 0.012,
                   ),
                   Text(
                     'Anyone with the link will be able to join your workspace once you accept their request.',
                     textAlign: TextAlign.center,
                   ),
                   SizedBox(
-                    height: 10,
+                    height: height * 0.012,
                   ),
-                  buildRaisedButton(eventID, 'admin'),
-                  buildRaisedButton(eventID, 'org'),
+                  buildRaisedButton(eventID, 'admin',context),
+                  buildRaisedButton(eventID, 'org',context),
                 ],
               )),
             ),
@@ -143,23 +151,25 @@ class InviteMembersPage extends StatelessWidget {
     );
   }
 
-  Container buildRaisedButton(String eventID, String role) {
+  Container buildRaisedButton(String eventID, String role, BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
     return Container(
-      width: 250,
+      width: height * 0.37,
       child: RaisedButton.icon(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-        color: role == 'admin' ? Colors.green : Colors.orange,
-        onPressed: () => shareLink(eventID, role),
-        icon: Icon(
-          role == 'admin' ? MdiIcons.linkVariantPlus : MdiIcons.linkVariant,
-          color: Colors.white,
-        ),
-        label: Text(
-          role == 'admin' ? 'Invite as Administrator' : 'Invite as Organizer',
-          style: TextStyle(color: Colors.white),
-        ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          color: role == 'admin' ? Colors.green : Colors.orange,
+          onPressed: () => shareLink(eventID, role),
+          icon: Icon(
+            role == 'admin' ? MdiIcons.linkVariantPlus : MdiIcons.linkVariant,
+            color: Colors.white,
+          ),
+          label: Text(
+            role == 'admin' ? 'Invite as Administrator' : 'Invite as Organizer',
+            style: TextStyle(color: Colors.white),
+          ),
+        
       ),
     );
   }
@@ -217,6 +227,7 @@ class _SearchUsersState extends State<SearchUsers> {
 
   @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
     return Column(
       children: [
         Padding(
@@ -234,7 +245,7 @@ class _SearchUsersState extends State<SearchUsers> {
           ),
         ),
         Container(
-            height: 100,
+            height: height * 0.119,
             child: searching
                 ? Center(child: LinearProgressIndicator())
                 : status

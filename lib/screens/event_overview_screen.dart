@@ -54,48 +54,51 @@ class _EventOverviewScreenState extends State<EventOverviewScreen> {
       ),
       body: screens.elementAt(selectedIndex),
       
-      bottomNavigationBar: BottomNavigationBar(
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.only(bottom :52.0),
+        child: BottomNavigationBar(
 
-        onTap: (index) {
-           setState(() {
-             selectedIndex = index;
-           });
-        },
-        
-        unselectedItemColor: Colors.deepPurple,
-        showUnselectedLabels: true,
-        
-        fixedColor: Colors.deepPurple,
-        currentIndex: selectedIndex,
-        items: [
-        BottomNavigationBarItem(
-          activeIcon:Icon(MdiIcons.information),
-          icon: Icon(MdiIcons.informationOutline),
-          title: Text('Dashboard'),
-          backgroundColor: Colors.white
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(Icons.people_outline),
-          activeIcon: Icon(Icons.people),
-          title: Text('Guests'),
-         
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(MdiIcons.sendCircleOutline),
-          activeIcon: Icon(MdiIcons.sendCircle),
-          title: Text('Check-In'),
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(MdiIcons.walletOutline),
-          activeIcon: Icon(MdiIcons.wallet),
-          title: Text('Finance'),
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(MdiIcons.homeCityOutline),
-          activeIcon: Icon(MdiIcons.homeCity),
-          title: Text('Workspace'),
-        ),
-      ]),
+          onTap: (index) {
+             setState(() {
+               selectedIndex = index;
+             });
+          },
+          
+          unselectedItemColor: Colors.deepPurple,
+          showUnselectedLabels: true,
+          
+          fixedColor: Colors.deepPurple,
+          currentIndex: selectedIndex,
+          items: [
+          BottomNavigationBarItem(
+            activeIcon:Icon(MdiIcons.information),
+            icon: Icon(MdiIcons.informationOutline),
+            title: Text('Dashboard'),
+            backgroundColor: Colors.white
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.people_outline),
+            activeIcon: Icon(Icons.people),
+            title: Text('Guests'),
+           
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(MdiIcons.sendCircleOutline),
+            activeIcon: Icon(MdiIcons.sendCircle),
+            title: Text('Check-In'),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(MdiIcons.walletOutline),
+            activeIcon: Icon(MdiIcons.wallet),
+            title: Text('Finance'),
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(MdiIcons.homeCityOutline),
+            activeIcon: Icon(MdiIcons.homeCity),
+            title: Text('Workspace'),
+          ),
+        ]),
+      ),
     );
   }
 }

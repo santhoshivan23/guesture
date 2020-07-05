@@ -1,10 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_admob/firebase_admob.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:guesture/models/guest.dart';
 import 'package:guesture/models/transaction.dart';
 import 'package:guesture/providers/guesture_db.dart';
 import 'package:guesture/screens/qr_screen.dart';
+import 'package:guesture/services/admob.dart';
 
 class CashConfirmScreen extends StatefulWidget {
   static const routeName = '/cash-confirm';
@@ -17,8 +19,42 @@ class _CashConfirmScreenState extends State<CashConfirmScreen> {
   Guest guestData;
   String eventID;
   String eventName;
+  InterstitialAd _interstitialAd;
   var init = false;
   var _loading = false;
+  final ams = AdMobService();
+  static const MobileAdTargetingInfo targetingInfo = MobileAdTargetingInfo(
+    testDevices: <String>['FDEA28183E85C0246AFC385DD539453C','08F97A3F50B1A9056804BEBB2AB80902','4A6014F8ED0B533145242BE3600EC087'],
+    keywords: [
+      'event',
+      'management',
+      'hotels',
+      'bookings',
+      'tour',
+      'flights',
+      'shopping',
+      'trains',
+      'government',
+      'cars',
+      'travel'
+    ],
+  );
+
+  @override
+  void initState() {
+    _interstitialAd = getInterstitalAd();
+    _interstitialAd..load();
+    super.initState();
+  }
+
+  InterstitialAd getInterstitalAd() {
+    return InterstitialAd(
+        adUnitId: ams.getInterstitialAdId(),
+        targetingInfo: targetingInfo,
+        listener: (MobileAdEvent event) {
+          print(event);
+        });
+  }
 
   @override
   void didChangeDependencies() {
@@ -51,13 +87,17 @@ class _CashConfirmScreenState extends State<CashConfirmScreen> {
           amount: tp * guestData.gAllowance,
         ),
         eventID);
-        setState(() {
-          _loading = false;
-        });
+    setState(() {
+      _loading = false;
+    });
+    await _interstitialAd.show(
+        anchorType: AnchorType.bottom,
+        anchorOffset: 0.0,
+        horizontalCenterOffset: 0.0);
     Navigator.of(context).pushNamed(QRScreen.routeName, arguments: {
       'guestData': guestData,
       'eventID': eventID,
-      'eventName' : eventName,
+      'eventName': eventName,
     });
   }
 
@@ -74,12 +114,12 @@ class _CashConfirmScreenState extends State<CashConfirmScreen> {
               content: Text('Acknowledge Cash Payment'),
               actions: <Widget>[
                 FlatButton(
-                  child:  Text(
+                  child: Text(
                     'Accept',
                     style: TextStyle(
                         color: Colors.green, fontWeight: FontWeight.bold),
                   ),
-                  onPressed: () =>_confirmReservation(c),
+                  onPressed: () => _confirmReservation(c),
                 ),
                 FlatButton(
                   child: Text(
@@ -99,14 +139,12 @@ class _CashConfirmScreenState extends State<CashConfirmScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
+          backgroundColor: Colors.deepPurple,
           title: const Text('Confirm Cash Payment'),
+          
         ),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: Colors.green,
-          onPressed: () => _fabPressed(context),
-          child: Icon(Icons.done),
-        ),
+        // floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+        //floatingActionButton: null,
         body: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
@@ -179,12 +217,25 @@ class _CashConfirmScreenState extends State<CashConfirmScreen> {
                           );
                         },
                       ),
+                      
                     ],
                   ),
                 ),
               ),
-              SizedBox(height:20),
-              _loading ? CircularProgressIndicator() : SizedBox(height: 0.5,)
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: FloatingActionButton(
+                          backgroundColor: Colors.green,
+                          onPressed: () => _fabPressed(context),
+                          child: Icon(Icons.done),
+                        ),
+              ),
+              SizedBox(height: 20),
+              _loading
+                  ? CircularProgressIndicator()
+                  : SizedBox(
+                      height: 0.5,
+                    )
             ],
           ),
         ));

@@ -10,7 +10,7 @@ var allowances;
 var eventID;
 
 
-exports.notifTrigger = functions.firestore.document('users/{uid}/notifications/{notifID}').onWrite((snapshot, context) => {
+exports.notifTrigger = functions.firestore.document('users/{uid}/notifications/{notifID}').onCreate((snapshot, context) => {
     notifData = snapshot.after.data();
     uid = snapshot.after.ref.parent.parent.id;
     admin.firestore().collection('users/' + uid + '/tokens').get().then((snapshots) => {

@@ -4,15 +4,15 @@ import 'package:guesture/models/g_user.dart';
 import 'package:guesture/models/workspace_member.dart';
 import 'package:guesture/providers/guesture_db.dart';
 import 'package:guesture/widgets/guesture_avatar.dart';
+import 'package:provider/provider.dart';
 
 class MembersTile extends StatefulWidget {
   final WorkspaceMember member;
   final String eventID;
   final String eventName;
   final bool isAdmin;
-  final myUid;
-  MembersTile(
-      {this.member, this.eventID, this.myUid, this.eventName, this.isAdmin});
+
+  MembersTile({this.member, this.eventID, this.eventName, this.isAdmin});
 
   @override
   _MembersTileState createState() => _MembersTileState();
@@ -34,24 +34,24 @@ class _MembersTileState extends State<MembersTile> {
       setState(() {
         memberRole = 'admin';
       });
-      await GuestureDB.updateRole(
-          gUser.uid, widget.eventID, 'admin');
+      await GuestureDB.updateRole(gUser.uid, widget.eventID, 'admin');
     } else {
       setState(() {
         memberRole = 'org';
       });
-      await GuestureDB.updateRole(
-          gUser.uid, widget.eventID, 'org');
+      await GuestureDB.updateRole(gUser.uid, widget.eventID, 'org');
     }
     await GuestureDB.pushNotification(
         GNotification(
+            type: 'role-change',
             title: '${widget.eventName} · Role updated',
             content: 'Your request to join he workspace has been accepted',
             timestamp: DateTime.now().toIso8601String()),
         [gUser.uid]);
   }
 
-  Future<void> _handleTap() async {
+  Future<void> _handleTap(String uid) async {
+    print(uid);
     showDialog(
         context: context,
         child: AlertDialog(
@@ -59,18 +59,13 @@ class _MembersTileState extends State<MembersTile> {
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
           title: FittedBox(
               child: GuestureAvatar(
-                  gUser.photoUrl,
-                  gUser.displayName,
-                  gUser.email,
-                  25)),
+                  gUser.photoUrl, gUser.displayName, gUser.email, 25)),
           content: Text(
-            gUser.displayName == null
-                ? 'NA'
-                : gUser.displayName,
+            gUser.displayName == null ? 'NA' : gUser.displayName,
             textAlign: TextAlign.center,
           ),
           actions: [
-            if (memberRole == 'admin')
+            if (memberRole == 'admin' && uid != widget.member.uid)
               GestureDetector(
                 onTap: () async {
                   Navigator.of(context).pop();
@@ -87,8 +82,7 @@ class _MembersTileState extends State<MembersTile> {
                       backgroundColor: Colors.orange,
                     ),
                   );
-                  await GuestureDB.updateRole(
-                      gUser.uid, widget.eventID, 'org');
+                  await GuestureDB.updateRole(gUser.uid, widget.eventID, 'org');
                   await GuestureDB.pushNotification(
                       GNotification(
                         title: '${widget.eventName} · Role updated',
@@ -104,7 +98,7 @@ class _MembersTileState extends State<MembersTile> {
                   fontSize: 12,
                 ),
               ),
-            if (memberRole == 'org')
+            if (memberRole == 'org' && widget.isAdmin)
               GestureDetector(
                 onTap: () async {
                   Navigator.of(context).pop();
@@ -141,43 +135,56 @@ class _MembersTileState extends State<MembersTile> {
             GestureDetector(
               onTap: () async {
                 Navigator.of(context).pop();
+                if (uid == widget.member.uid) {
+                  print('heree');
+
+                  Navigator.of(context).pop();
+                }
                 final result = await GuestureDB.updateRole(
                     gUser.uid, widget.eventID, 'REMOVE');
-                if (result == 1) {
-                  setState(() {
-                    memberRole = 'removed';
-                  });
-                  Scaffold.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Removed from workspace!',
-                        textAlign: TextAlign.center,
+                if (uid != widget.member.uid) {
+                  if (result == 1) {
+                    setState(() {
+                      memberRole = 'removed';
+                    });
+                    Scaffold.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Removed from workspace!',
+                          textAlign: TextAlign.center,
+                        ),
+                        backgroundColor: Colors.red,
                       ),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                  await GuestureDB.pushNotification(
-                      GNotification(
-                        title: widget.eventName,
-                        content: 'You have been removed from the workspace',
-                        type: 'role-change',
-                        timestamp: DateTime.now().toIso8601String(),
+                    );
+
+                    await GuestureDB.pushNotification(
+                        GNotification(
+                          title: widget.eventName,
+                          content: 'You have been removed from the workspace',
+                          type: 'role-change',
+                          timestamp: DateTime.now().toIso8601String(),
+                        ),
+                        [gUser.uid]);
+                  } else {
+                    Scaffold.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Creator of workspace cannot be removed',
+                          textAlign: TextAlign.center,
+                        ),
                       ),
-                      [gUser.uid]);
-                } else {
-                  Scaffold.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        'Creator of workspace cannot be removed',
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  );
+                    );
+                  }
+                }
+                else {
+                  return;
                 }
               },
               child: RoleChip(
                 color: Colors.red,
-                role: 'Remove from workspace',
+                role: widget.member.uid != uid
+                    ? 'Remove from workspace'
+                    : 'Leave workspace',
                 fontSize: 12,
               ),
             ),
@@ -185,38 +192,37 @@ class _MembersTileState extends State<MembersTile> {
         ));
   }
 
-  Future<void> getGUser () async {
-    
+  Future<void> getGUser() async {
     gUser = await GuestureDB.getGUserFromUid(widget.member.uid);
   }
 
   @override
   Widget build(BuildContext context) {
+    final user = Provider.of<GUser>(context);
     return memberRole == 'removed'
         ? Container()
         : FutureBuilder(
-          future: getGUser(),
-          builder: (context, snapshot) {
-            if(snapshot.connectionState == ConnectionState.waiting)
-            return Center(
-              child: LinearProgressIndicator(backgroundColor: Colors.white, minHeight: 2,),
-            );
-            return Padding(
+            future: getGUser(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting)
+                return Center(
+                  child: LinearProgressIndicator(
+                    backgroundColor: Colors.white,
+                    minHeight: 2,
+                  ),
+                );
+              return Padding(
                 padding: const EdgeInsets.all(3.0),
                 child: ListTile(
-                  onTap:
-                      (widget.myUid == widget.member.uid || !widget.isAdmin)
-                          ? null
-                          : _handleTap,
+                  onTap: (!widget.isAdmin && widget.member.role == 'admin') ||
+                          (!widget.isAdmin && widget.member.uid != user.uid)
+                      ? null
+                      : () => _handleTap(user.uid),
                   leading: GuestureAvatar(
-                      gUser.photoUrl,
-                      gUser.displayName,
-                      gUser.email,
-                      20),
-                  title: Text(gUser.displayName == null
-                      ? 'NA'
-                      : gUser.displayName),
-                  subtitle: Text(gUser.email),
+                      gUser.photoUrl, gUser.displayName, gUser.email, 20),
+                  title: Text(
+                      gUser.displayName == null ? 'NA' : gUser.displayName),
+                  subtitle: FittedBox(child: Text(gUser.email)),
                   trailing: FittedBox(
                     child: Column(
                       children: [
@@ -230,6 +236,7 @@ class _MembersTileState extends State<MembersTile> {
                           RoleChip(
                             role: 'Organizer',
                             color: Colors.orange,
+                            fontSize: 10,
                           ),
                         if (memberRole.contains('invited'))
                           RoleChip(
@@ -258,15 +265,16 @@ class _MembersTileState extends State<MembersTile> {
                           padding: const EdgeInsets.all(2.0),
                           child: Center(
                               child: Text(
-                                  '${widget.member.ticketsSold} tickets sold',style: TextStyle(fontSize: 12),)),
+                            '${widget.member.ticketsSold} tickets sold',
+                            style: TextStyle(fontSize: 12),
+                          )),
                         )
                       ],
                     ),
                   ),
                 ),
               );
-          }
-        );
+            });
   }
 }
 

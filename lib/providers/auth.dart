@@ -35,9 +35,14 @@ class Auth with ChangeNotifier {
       final response = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
       if (response == null) return 0;
-
-      final gUser = _gUserFromFBUser(response.user);
+    
+      var gUser = _gUserFromFBUser(response.user);
+      gUser.displayName = displayName;
       await createUser(gUser);
+
+      UserUpdateInfo _info = UserUpdateInfo();
+      _info.displayName = displayName;
+      await response.user.updateProfile(_info);
       await GuestureDB.createToken(response.user.uid);
       return 1;
     } catch (err) {

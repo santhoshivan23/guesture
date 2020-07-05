@@ -13,6 +13,10 @@
         android:name="io.flutter.app.FlutterApplication"
         android:label="guesture"
         android:icon="@mipmap/ic_launcher">
+        <meta-data
+              android:name="com.google.android.gms.ads.APPLICATION_ID"
+              android:value="ca-app-pub-2926499666072016~3530970451"
+        />
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
@@ -37,6 +41,7 @@
               android:name="io.flutter.embedding.android.SplashScreenDrawable"
               android:resource="@drawable/launch_background"
               />
+            
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>

@@ -39,12 +39,17 @@ class GuestTile extends StatefulWidget {
 
 class _GuestTileState extends State<GuestTile> {
   var _expanded = false;
+ 
+ 
 
   _callGuest(String guestPhone) async {
     final number = guestPhone;
     bool res = await FlutterPhoneDirectCaller.callNumber(number);
   }
 
+
+  
+ 
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -157,7 +162,8 @@ class _GuestTileState extends State<GuestTile> {
                         ),
                       if (!widget.isCheckedIn)
                         RaisedButton.icon(
-                          onPressed: () {
+                          onPressed: () async {
+                           
                             Navigator.of(context)
                                 .pushNamed(QRScreen.routeName, arguments: {
                               'eventID': widget.eventID,

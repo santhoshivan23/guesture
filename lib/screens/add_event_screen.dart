@@ -1,3 +1,4 @@
+import 'package:firebase_admob/firebase_admob.dart';
 import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -6,6 +7,7 @@ import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 import 'package:guesture/models/event.dart';
 import 'package:guesture/models/g_user.dart';
 import 'package:guesture/providers/guesture_db.dart';
+import 'package:guesture/services/admob.dart';
 import 'package:intl/intl.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:random_string/random_string.dart';
@@ -25,6 +27,32 @@ class _AddEventScreenState extends State<AddEventScreen> {
   final _formKey = GlobalKey<FormState>();
   DateTime _pickedDate;
   TimeOfDay _pickedTime;
+  InterstitialAd _interstitialAd;
+  static const MobileAdTargetingInfo targetingInfo = MobileAdTargetingInfo(
+    
+    testDevices: <String>[
+      'FDEA28183E85C0246AFC385DD539453C',
+      '08F97A3F50B1A9056804BEBB2AB80902',
+      '4A6014F8ED0B533145242BE3600EC087'
+
+
+    ],
+    keywords: [
+      'event',
+      'management',
+      'hotels',
+      'bookings',
+      'tour',
+      'flights',
+      'shopping',
+      'trains',
+      'government',
+      'cars',
+      'travel'
+    ],
+  );
+  final ams = AdMobService();
+  var loading = false;
   var _processingEvent = Event(
     eventName: '',
     location: '',
@@ -59,26 +87,43 @@ class _AddEventScreenState extends State<AddEventScreen> {
   }
 
   Future<void> _fabClicked(bool isModify, String oldID) async {
-  
     if (!_formKey.currentState.validate()) return;
     _formKey.currentState.save();
-    if(!isModify) {
-     
-    _processingEvent.eventID = randomAlphaNumeric(5);
-    
-    _processingEvent.inviteLinkA =
-        await _createInviteLink(_processingEvent.eventID, 'admin');
-    _processingEvent.inviteLinkO =
-        await _createInviteLink(_processingEvent.eventID, 'org');
-    
-    Navigator.of(context).pop();
-    await GuestureDB.addEvent(_processingEvent);
-    }
-    else {
+    await _interstitialAd.show(
+          anchorType: AnchorType.bottom,
+          anchorOffset: 0.0,
+          horizontalCenterOffset: 0.0);
+    if (!isModify) {
+      _processingEvent.eventID = randomAlphaNumeric(5);
+      
+      Navigator.of(context).pop();
+      _processingEvent.inviteLinkA =
+          await _createInviteLink(_processingEvent.eventID, 'admin');
+      _processingEvent.inviteLinkO =
+          await _createInviteLink(_processingEvent.eventID, 'org');
+
+      await GuestureDB.addEvent(_processingEvent);
+    } else {
       _processingEvent.eventID = oldID;
       Navigator.of(context).pop();
       await GuestureDB.modifyEvent(_processingEvent);
     }
+  }
+
+  @override
+  void initState() {
+    _interstitialAd = getInterstitalAd();
+    _interstitialAd..load();
+    super.initState();
+  }
+
+  InterstitialAd getInterstitalAd() {
+    return InterstitialAd(
+        adUnitId: ams.getInterstitialAdId(),
+        targetingInfo: targetingInfo,
+        listener: (MobileAdEvent event) {
+          print(event);
+        });
   }
 
   @override
@@ -91,12 +136,17 @@ class _AddEventScreenState extends State<AddEventScreen> {
     final eventData = args['eventData'] as Event;
 
     return Scaffold(
-      appBar: AppBar(title:  Text( !isModify ?  'Add a new event' : '${eventData.eventName}')),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.green,
-        child: Icon(Icons.done),
-        onPressed: () => isModify ?  _fabClicked(isModify, eventData.eventID) : _fabClicked(isModify, null),
+      appBar: AppBar(
+        backgroundColor: Colors.deepPurple,
+        title: Text(!isModify ? 'Add a new event' : '${eventData.eventName}'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.done),
+            onPressed: () => isModify
+                ? _fabClicked(isModify, eventData.eventID)
+                : _fabClicked(isModify, null),
+          ),
+        ],
       ),
       body: Form(
         key: _formKey,
@@ -113,6 +163,10 @@ class _AddEventScreenState extends State<AddEventScreen> {
                   },
                   initialValue: isModify ? eventData.eventName : null,
                   decoration: InputDecoration(
+                    prefixIcon: Icon(
+                      MdiIcons.pen,
+                      color: Colors.pink,
+                    ),
                     labelText: 'Name of the event',
                     labelStyle: GoogleFonts.notoSans(),
                   ),
@@ -138,11 +192,17 @@ class _AddEventScreenState extends State<AddEventScreen> {
               Padding(
                 padding: const EdgeInsets.all(15.0),
                 child: DateTimeField(
+                  validator: (DateTime dt) {
+                    if(dt == null)
+                    return "This is a required field";
+                    return null;
+                  },
                   resetIcon: Icon(MdiIcons.update),
                   initialValue: isModify ? eventData.startDate : null,
                   format: DateFormat("EEEE, MMMM d, yyyy 'at' h:mma"),
                   onShowPicker: (context, currentValue) async {
                     final date = await showDatePicker(
+                      
                         context: context,
                         initialDate: currentValue ?? DateTime.now(),
                         firstDate: DateTime.now(),
@@ -174,6 +234,10 @@ class _AddEventScreenState extends State<AddEventScreen> {
                     FocusScope.of(context).requestFocus(_locationFocusNode);
                   },
                   decoration: InputDecoration(
+                    prefixIcon: Icon(
+                      MdiIcons.calendar,
+                      color: Colors.pink,
+                    ),
                     labelText: 'Starting date and time',
                     labelStyle: GoogleFonts.notoSans(),
                   ),
@@ -189,6 +253,10 @@ class _AddEventScreenState extends State<AddEventScreen> {
                     FocusScope.of(context).requestFocus(_ticketPriceFocusNode);
                   },
                   decoration: InputDecoration(
+                    prefixIcon: Icon(
+                      MdiIcons.googleMaps,
+                      color: Colors.pink,
+                    ),
                     labelText: 'Location',
                     labelStyle: GoogleFonts.notoSans(),
                   ),
@@ -219,6 +287,10 @@ class _AddEventScreenState extends State<AddEventScreen> {
                   focusNode: _ticketPriceFocusNode,
                   textInputAction: TextInputAction.done,
                   decoration: InputDecoration(
+                    prefixIcon: Icon(
+                      MdiIcons.cash,
+                      color: Colors.pink,
+                    ),
                     labelText: 'Ticket Price',
                     labelStyle: GoogleFonts.notoSans(),
                   ),

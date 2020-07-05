@@ -8,6 +8,7 @@ class ReservationCounter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
     return StreamBuilder(
         stream: Firestore.instance
             .collection('events')
@@ -17,7 +18,7 @@ class ReservationCounter extends StatelessWidget {
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting)
             return Container(
-                height: 260,
+                height: height * 0.31,
                 child: Center(
               child: CircularProgressIndicator(),
             ));
@@ -28,7 +29,7 @@ class ReservationCounter extends StatelessWidget {
                   previousValue + element.data['gAllowance']));
 
           return Container(
-            height: 260,
+            height: height * 0.34,
             decoration: BoxDecoration(
               border: Border.all(
                 color: Colors.indigo,
@@ -55,7 +56,7 @@ class ReservationCounter extends StatelessWidget {
                     Text('No.of Guests'),
                   ],
                 ),
-                SizedBox(width: 20),
+                SizedBox(width: height * 0.024),
                 Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[

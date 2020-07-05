@@ -13,9 +13,11 @@ class MyWorkspaceSubscreen extends StatelessWidget {
   final String eventID;
   final bool isAdmin;
   final String eventName;
-  String myUid;
-  MyWorkspaceSubscreen({this.eventID, this.isAdmin, this.eventName});
+  int membersCount;
+  Map<String, dynamic> membersMap;
+  MyWorkspaceSubscreen({this.eventID, this.isAdmin, this.eventName,});
   List<WorkspaceMember> members = [];
+  final GlobalKey<ScaffoldState> _key = GlobalKey<ScaffoldState>();
   // Future<void> fetchGUsers() async {
   //   final eventRef =
   //       await Firestore.instance.collection('events').document(eventID).get();
@@ -35,33 +37,45 @@ class MyWorkspaceSubscreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-  
+    int membersCount;
     return Scaffold(
+      key : _key,
       body: StreamBuilder(
-          stream: Firestore.instance.collection('events').document(eventID).snapshots(),
+          stream: Firestore.instance
+              .collection('events')
+              .document(eventID)
+              .snapshots(),
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting)
-              return Center(child: CircularProgressIndicator(
-                backgroundColor: Colors.white,
-                strokeWidth: 0.25,                
-              ));
-            final membersMap = (snapshot.data['members'] as Map<String,dynamic>);
-            membersMap.forEach((key, value) { 
+            print(snapshot.connectionState);
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return LinearProgressIndicator(
+                backgroundColor: Colors.green,
+              );
+            }
+            
+            membersMap = (snapshot.data['members'] as Map<String, dynamic>);
+            membersCount = membersMap.length;
+            membersMap.forEach((key, value) {
               members.add(WorkspaceMember(
                 uid: key,
                 role: value['role'],
-                ticketsSold: value['ticketsSold'] == null ? 0 : value['ticketsSold'],
+                ticketsSold:
+                    value['ticketsSold'] == null ? 0 : value['ticketsSold'],
+              
               ));
             });
-            
+            members.sort((WorkspaceMember a, WorkspaceMember b) => (a.role == 'admin' && b.role != 'admin') ? 0 : 1);
+
             return ListView.builder(
+              physics: BouncingScrollPhysics(),
               itemCount: membersMap.length,
               itemBuilder: (ctx, index) => MembersTile(
-                member:  members[index],
+                member: members[index],
                 eventID: eventID,
-                myUid: myUid,
+             
                 eventName: eventName,
                 isAdmin: isAdmin,
+
               ),
             );
           }),
@@ -70,11 +84,17 @@ class MyWorkspaceSubscreen extends StatelessWidget {
               backgroundColor: Colors.deepPurple,
               icon: Icon(MdiIcons.plusCircleMultiple),
               onPressed: () {
-                Navigator.of(context)
-                    .pushNamed(InviteMembersPage.routeName, arguments: {
-                  'eventID': eventID,
-                  'eventName': eventName,
-                });
+                
+                if(membersCount >= 6) {
+                  _key.currentState.showSnackBar(SnackBar(content: Text('Maximum no. of members reached. (6)',textAlign: TextAlign.center,),),);
+                  return;
+                }
+                Navigator.of(context).pushReplacementNamed(
+                    InviteMembersPage.routeName,
+                    arguments: {
+                      'eventID': eventID,
+                      'eventName': eventName,
+                    });
               },
               label: Text('Invite People'))
           : null,
