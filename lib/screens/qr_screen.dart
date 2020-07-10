@@ -28,7 +28,7 @@ class QRScreen extends StatelessWidget {
   final ScreenshotController _controller = ScreenshotController();
   void _share(String ph, String guestName, String eventName, String guestID) {
     FlutterOpenWhatsapp.sendSingleMessage(ph,
-        "Hey *$guestName!*,\n\nThank you so much for registering for our event - *$eventName*. Your guest ID is *$guestID*. Scan your ticket at the venue to check-in. Looking forward to have you onboard! \n\n_This event is managed on *Guesture*. Click on the link below to download the app now and start organizing your events!_  \n\nbit.ly/guesture-android");
+        "Hey *$guestName!*,\n\nThank you for registering for our event - *$eventName*. Your guest ID is *$guestID*. Scan your ticket at the venue to check-in. Looking forward to have you onboard! \n\n_This event is managed on *Guesture*. Click on the link below to download the app now and start organizing your events!_  \n\nbit.ly/guesture-android");
   }
 
   Future<void> _shareTicket() async {
@@ -49,7 +49,7 @@ class QRScreen extends StatelessWidget {
     final guestData = args['guestData'] as Guest;
     final eventID = args['eventID'] as String;
     final eventName = args['eventName'] as String;
-
+    final height = MediaQuery.of(context).size.height;
     return WillPopScope(
       onWillPop: () async => false,
       child: Screenshot(
@@ -131,11 +131,7 @@ class QRScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: <Widget>[
-                    Container(
-                      margin: EdgeInsets.all(5),
-                      padding: EdgeInsets.all(8),
-                      child: Column(
-                        children: <Widget>[
+                    
                           Text(
                             'Hey ${guestData.gName},',
                             style: GoogleFonts.notoSans(
@@ -145,13 +141,13 @@ class QRScreen extends StatelessWidget {
                             '\nYour reservation for ${eventData.eventName} is successful! You can scan the following ticket at the venue to check-in',
                             textAlign: TextAlign.center,
                           ),
-                        ],
-                      ),
-                    ),
+                      
+                      
+                    
                     Divider(
                       thickness: 1,
                     ),
-                    SizedBox(height: 10),
+                    SizedBox(height: height * 0.012),
                     Container(
                       margin: EdgeInsets.symmetric(
                           horizontal:
@@ -174,9 +170,9 @@ class QRScreen extends StatelessWidget {
                           guestData.gAllowance.toString(),
                       style: TextStyle(fontSize: 12),
                     ),
-                    SizedBox(height: 10),
+                    SizedBox(height: height * 0.012),
                     Container(
-                      margin: EdgeInsets.symmetric(horizontal: 30),
+                      margin: EdgeInsets.symmetric(horizontal: height * 0.036),
                       width: double.infinity,
                       decoration: BoxDecoration(
                         color: Colors.grey.withOpacity(0.3),
@@ -190,8 +186,8 @@ class QRScreen extends StatelessWidget {
                           Container(
                             width: double.infinity,
                             padding: EdgeInsets.symmetric(
-                                vertical: 10, horizontal: 8),
-                            height: 40,
+                                vertical: height*0.012, horizontal: height * 0.01),
+                            height: height*0.048,
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                   colors: [
@@ -289,10 +285,10 @@ class QRScreen extends StatelessWidget {
                         ],
                       ),
                     ),
-                    SizedBox(height: 5),
+                    SizedBox(height: height*0.006),
                     Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 20.0, vertical: 8),
+                      padding:  EdgeInsets.symmetric(
+                          horizontal: height*0.024, vertical: height*0.01),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: <Widget>[
@@ -310,7 +306,7 @@ class QRScreen extends StatelessWidget {
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      padding:  EdgeInsets.symmetric(horizontal: height*0.024),
                       child: Text(
                         'Download the Guesture app from Google Play Store and start organizing your events.',
                         textAlign: TextAlign.center,
@@ -323,7 +319,7 @@ class QRScreen extends StatelessWidget {
           ),
           floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
           floatingActionButton: Padding(
-            padding: const EdgeInsets.only(bottom : 35.0),
+            padding:  EdgeInsets.only(bottom : height * 0.042),
             child: FloatingActionButton(
               mini: true,
               backgroundColor: Colors.pink,

@@ -39,6 +39,7 @@ class FinanceSubscreen extends StatelessWidget {
             Expanded(
                           child: ListView.builder(
                   shrinkWrap: true,
+                  physics: const BouncingScrollPhysics(),
                   itemCount: snapshot.data.documents.length,
                   itemBuilder: (ctx, index) => TransactionTile(
                         payerName: snapshot.data.documents[index]['payerName'],

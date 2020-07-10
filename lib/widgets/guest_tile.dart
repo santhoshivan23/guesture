@@ -44,7 +44,7 @@ class _GuestTileState extends State<GuestTile> {
 
   _callGuest(String guestPhone) async {
     final number = guestPhone;
-    bool res = await FlutterPhoneDirectCaller.callNumber(number);
+    await FlutterPhoneDirectCaller.callNumber(number);
   }
 
 

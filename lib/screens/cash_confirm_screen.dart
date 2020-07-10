@@ -24,7 +24,11 @@ class _CashConfirmScreenState extends State<CashConfirmScreen> {
   var _loading = false;
   final ams = AdMobService();
   static const MobileAdTargetingInfo targetingInfo = MobileAdTargetingInfo(
-    testDevices: <String>['FDEA28183E85C0246AFC385DD539453C','08F97A3F50B1A9056804BEBB2AB80902','4A6014F8ED0B533145242BE3600EC087'],
+    // testDevices: <String>[
+    //   'FDEA28183E85C0246AFC385DD539453C',
+    //   '08F97A3F50B1A9056804BEBB2AB80902',
+    //   '4A6014F8ED0B533145242BE3600EC087'
+    // ],
     keywords: [
       'event',
       'management',
@@ -106,6 +110,9 @@ class _CashConfirmScreenState extends State<CashConfirmScreen> {
         context: ctx,
         barrierDismissible: false,
         builder: (c) => AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15),
+              ),
               elevation: 5,
               title: Text(
                 'Confirm',
@@ -137,106 +144,105 @@ class _CashConfirmScreenState extends State<CashConfirmScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
     return Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.deepPurple,
           title: const Text('Confirm Cash Payment'),
-          
         ),
         // floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
         //floatingActionButton: null,
         body: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Column(
-            children: <Widget>[
-              Card(
-                elevation: 3,
-                child: ListTile(
-                  leading: CircleAvatar(
-                    child: Icon(Icons.person_pin),
-                  ),
-                  title: Text(guestData.gName),
-                  subtitle: Text("Full Name"),
-                ),
-              ),
-              Card(
-                elevation: 3,
-                child: ListTile(
-                  leading: CircleAvatar(
-                    child: Icon(Icons.phone),
-                  ),
-                  title: Text(guestData.gMobileNumber),
-                  subtitle: Text('Mobile'),
-                ),
-              ),
-              Card(
-                elevation: 3,
-                child: ListTile(
-                  leading: CircleAvatar(
-                    child: Text(guestData.gAllowance.toString()),
-                  ),
-                  title: Text('Allowances'),
-                ),
-              ),
-              SizedBox(height: 100),
-              Container(
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.indigo, width: 1),
-                  borderRadius: BorderRadius.circular(15),
-                  gradient: LinearGradient(
-                    colors: [Colors.purple, Colors.purple.withOpacity(0.6)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+          child: SingleChildScrollView(
+            child: Column(
+              children: <Widget>[
+                Card(
+                  elevation: 3,
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      child: Icon(Icons.person_pin),
+                    ),
+                    title: Text(guestData.gName),
+                    subtitle: Text("Full Name"),
                   ),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Column(
-                    children: <Widget>[
-                      Text(
-                        'Amount Payable',
-                        style: GoogleFonts.notoSans(
-                            color: Colors.white, fontSize: 16),
-                      ),
-                      FutureBuilder(
-                        future: Firestore.instance
-                            .collection('events')
-                            .document(eventID)
-                            .get()
-                            .then((value) => value),
-                        builder: (c, s) {
-                          if (s.connectionState == ConnectionState.waiting)
-                            return CircularProgressIndicator();
-                          final ticketPrice = s.data['ticketPrice'];
-                          return Text(
-                            (ticketPrice * guestData.gAllowance).toString(),
-                            style: GoogleFonts.notoSans(
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18),
-                          );
-                        },
-                      ),
-                      
-                    ],
+                Card(
+                  elevation: 3,
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      child: Icon(Icons.phone),
+                    ),
+                    title: Text(guestData.gMobileNumber),
+                    subtitle: Text('Mobile'),
                   ),
                 ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: FloatingActionButton(
-                          backgroundColor: Colors.green,
-                          onPressed: () => _fabPressed(context),
-                          child: Icon(Icons.done),
+                Card(
+                  elevation: 3,
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      child: Text(guestData.gAllowance.toString()),
+                    ),
+                    title: Text('Allowances'),
+                  ),
+                ),
+                SizedBox(height: height * 0.05),
+                Container(
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.indigo, width: 1),
+                    borderRadius: BorderRadius.circular(15),
+                    gradient: LinearGradient(
+                      colors: [Colors.purple, Colors.purple.withOpacity(0.6)],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Column(
+                      children: <Widget>[
+                        Text(
+                          'Amount Payable',
+                          style: GoogleFonts.notoSans(
+                              color: Colors.white, fontSize: 16),
                         ),
-              ),
-              SizedBox(height: 20),
-              _loading
-                  ? CircularProgressIndicator()
-                  : SizedBox(
-                      height: 0.5,
-                    )
-            ],
+                        FutureBuilder(
+                          future: Firestore.instance
+                              .collection('events')
+                              .document(eventID)
+                              .get()
+                              .then((value) => value),
+                          builder: (c, s) {
+                            if (s.connectionState == ConnectionState.waiting)
+                              return CircularProgressIndicator();
+                            final ticketPrice = s.data['ticketPrice'];
+                            return Text(
+                              (ticketPrice * guestData.gAllowance).toString(),
+                              style: GoogleFonts.notoSans(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: FloatingActionButton(
+                    backgroundColor: Colors.green,
+                    onPressed: () => _fabPressed(context),
+                    child: Icon(Icons.done),
+                  ),
+                ),
+                SizedBox(height: height*0.02),
+                _loading
+                    ? CircularProgressIndicator()
+                    : Container()
+              ],
+            ),
           ),
         ));
   }

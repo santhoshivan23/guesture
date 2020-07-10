@@ -1,14 +1,8 @@
-
-
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_admob/firebase_admob.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_share/flutter_share.dart';
 import 'package:guesture/models/g_user.dart';
 import 'package:guesture/providers/guesture_db.dart';
-import 'package:guesture/services/admob.dart';
 import 'package:guesture/widgets/user_tile.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
@@ -35,7 +29,8 @@ class InviteMembersPage extends StatelessWidget {
     FlutterShare.share(
         title: 'Share Invite Link',
         linkUrl: link,
-        text: 'Hey! Click this link and join my workspace on Guesture!');
+        text: 'Hey! Click this link and join my workspace on Guesture!',
+      );
   }
 
   
@@ -90,9 +85,12 @@ class InviteMembersPage extends StatelessWidget {
                           color: Colors.deepPurple),
                     ),
                   ),
-                  Text(
-                    'If the person is already on Guesture, you can invite them right away. Once they accept your invite, they\'ll become member of this workspace.',
-                    textAlign: TextAlign.center,
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                    child: Text(
+                      'If the person is already on Guesture, you can invite them right away. Once they accept your invite, they\'ll become member of this workspace.',
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                   SearchUsers(eventID: eventID,eventName: eventName),
                   SizedBox(

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:guesture/screens/auth_screen.dart';
-import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class OnboardingScreen extends StatefulWidget {
@@ -60,10 +59,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 end: Alignment.bottomCenter,
                 stops: [0.1, 0.4, 0.7, 0.9],
                 colors: [
-                  // Color.fromRGBO(75, 0, 130, 1),
-                  // Color.fromRGBO(75, 0, 150, 1),
-                  // Color.fromRGBO(75, 0, 170, 1),
-                  // Color.fromRGBO(100, 0, 190, 1),
+                
                   Colors.white,
                   Colors.white,
                   Colors.white,
@@ -72,7 +68,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
             ),
             child: Padding(
-              padding: EdgeInsets.symmetric(vertical: height * 0.047),
+              padding: EdgeInsets.symmetric(vertical: height * 0.04),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
@@ -110,14 +106,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ],
                   ),
                   Padding(
-                    padding: EdgeInsets.all(height * 0.023),
+                    padding: EdgeInsets.all(height * 0.02),
                     child: Center(
                         child: Text('Guesture',
                             style: GoogleFonts.pacifico(
                                 color: Colors.deepPurple, fontSize: 40))),
                   ),
                   Container(
-                    height: MediaQuery.of(context).size.height * 0.7,
+                    height: MediaQuery.of(context).size.height * 0.6,
                     child: PageView(
                       physics: BouncingScrollPhysics(),
                       controller: _pageController,
@@ -198,7 +194,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         final height = MediaQuery.of(context).size.height;
 
     return Padding(
-      padding: EdgeInsets.all(height * 0.036),
+      padding: EdgeInsets.all(height * 0.01),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

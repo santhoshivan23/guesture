@@ -1,9 +1,7 @@
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:guesture/models/g_user.dart';
 import 'package:guesture/providers/auth.dart';
-import 'package:guesture/providers/guesture_db.dart';
 import 'package:guesture/widgets/guesture_avatar.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';

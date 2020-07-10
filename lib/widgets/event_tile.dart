@@ -18,6 +18,7 @@ class EventTile extends StatelessWidget {
   final String myUid;
   final double ticketPrice;
   final String role;
+  final String creatorUid;
   EventTile(
       {this.eventName,
       this.eventID,
@@ -27,7 +28,8 @@ class EventTile extends StatelessWidget {
       this.ticketPrice,
       this.role,
       this.myUid,
-      this.access});
+      this.access,
+      this.creatorUid});
 
   String getDate(DateTime dt) => DateFormat.d().format(dt);
 
@@ -46,12 +48,13 @@ class EventTile extends StatelessWidget {
             'eventName': eventName,
             'isAdmin': role == 'admin' ? true : false,
             'myUid': myUid,
+            'creatorUid' : creatorUid,
           });
         else
           Scaffold.of(context).showSnackBar(SnackBar(
             backgroundColor: Colors.red,
             content: Padding(
-              padding: const EdgeInsets.only(bottom : 50.0),
+              padding: const EdgeInsets.only(bottom: 50.0),
               child: Text(
                 'Acess Denied!\nWorkspace administrator is yet to approve your request.',
                 textAlign: TextAlign.center,
@@ -68,54 +71,57 @@ class EventTile extends StatelessWidget {
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
-                        title: Text(eventName,style: TextStyle(fontWeight: FontWeight.bold),),
-                        content: Text('Delete or Modify event'),
+                        title: Text(
+                          eventName,
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        content: gUser.uid == creatorUid ? Text('Delete or Modify event') : Text("Modify event"),
                         actions: <Widget>[
-                          FlatButton(
-                            child: Text(
-                              'Delete',
-                              style: TextStyle(color: Colors.red),
-                            ),
-                            onPressed: () {
-                              showDialog(
-                                  barrierDismissible: false,
-                                  context: ctx,
-                                  builder: (c) => AlertDialog(
-                                        shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(20)),
-                                        title: Text(
-                                          'Confirm Deletion',
-                                          style: TextStyle(
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        content: Text(
-                                            '$eventName and all its data will be permenantly deleted. This action cannot be reverted.'),
-                                        actions: <Widget>[
-                                          RaisedButton(
-                                            color: Colors.red,
-                                            child: Text(
-                                              'Confirm',
+                          if (gUser.uid == creatorUid)
+                            FlatButton(
+                                child: Text(
+                                  'Delete',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                                onPressed: () {
+                                  showDialog(
+                                      barrierDismissible: false,
+                                      context: ctx,
+                                      builder: (c) => AlertDialog(
+                                            shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(20)),
+                                            title: Text(
+                                              'Confirm Deletion',
                                               style: TextStyle(
-                                                  color: Colors.white),
+                                                  fontWeight: FontWeight.bold),
                                             ),
-                                            onPressed: () async {
-                                              Navigator.of(context).pop();
-                                              Navigator.of(context).pop();
-                                              await GuestureDB.deleteEvent(
-                                                  eventID);
-                                            },
-                                          ),
-                                          FlatButton(
-                                            child: Text('Go Back'),
-                                            onPressed: () {
-                                              Navigator.of(c).pop();
-                                            },
-                                          )
-                                        ],
-                                      ));
-                            },
-                          ),
+                                            content: Text(
+                                                '$eventName and all its data will be permenantly deleted. This action cannot be reverted.'),
+                                            actions: <Widget>[
+                                              RaisedButton(
+                                                color: Colors.red,
+                                                child: Text(
+                                                  'Confirm',
+                                                  style: TextStyle(
+                                                      color: Colors.white),
+                                                ),
+                                                onPressed: () async {
+                                                  Navigator.of(context).pop();
+                                                  Navigator.of(context).pop();
+                                                  await GuestureDB.deleteEvent(
+                                                      eventID);
+                                                },
+                                              ),
+                                              FlatButton(
+                                                child: Text('Go Back'),
+                                                onPressed: () {
+                                                  Navigator.of(c).pop();
+                                                },
+                                              )
+                                            ],
+                                          ));
+                                }),
                           FlatButton(
                             child: Text('Modify'),
                             onPressed: () {
@@ -150,66 +156,68 @@ class EventTile extends StatelessWidget {
             eventName,
             style: GoogleFonts.notoSans(),
           ),
-          if (!access)
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.deepPurpleAccent,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Text(
-                    'Requested',
-                    style: TextStyle(fontSize: 10, color: Colors.white),
-                  )),
-            ),
-          if (role == 'admin')
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.green,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Text(
-                    'Administrator',
-                    style: TextStyle(fontSize: 10, color: Colors.white),
-                  )),
-            ),
-          if (role == 'org')
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.orange,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: Text(
-                    'Organizer',
-                    style: TextStyle(fontSize: 10, color: Colors.white),
-                  )),
-            ),
         ],
       ),
       subtitle: Text(
         eventLocation,
         style: GoogleFonts.notoSans(),
       ),
-      trailing: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: FittedBox(
-          child: Column(
-            children: <Widget>[
-              Text(
-                getDate(startDate),
-                style: GoogleFonts.notoSans(fontWeight: FontWeight.w500),
+      trailing: FittedBox(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: FittedBox(
+                child: Column(
+                  children: <Widget>[
+                    Text(
+                      getDate(startDate) + " " + getMonth(startDate),
+                      style: GoogleFonts.notoSans(fontWeight: FontWeight.w500),
+                    ),
+                  ],
+                ),
               ),
-              Text(
-                getMonth(startDate),
-                style: GoogleFonts.notoSans(fontWeight: FontWeight.w500),
+            ),
+            if (!access)
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.deepPurpleAccent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Text(
+                      'Requested',
+                      style: TextStyle(fontSize: 10, color: Colors.white),
+                    )),
               ),
-            ],
-          ),
+            if (role == 'admin')
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.green,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Text(
+                      'Administrator',
+                      style: TextStyle(fontSize: 10, color: Colors.white),
+                    )),
+              ),
+            if (role == 'org')
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.orange,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Padding(
+                    padding: const EdgeInsets.all(4.0),
+                    child: Text(
+                      'Organizer',
+                      style: TextStyle(fontSize: 10, color: Colors.white),
+                    )),
+              ),
+          ],
         ),
       ),
     );

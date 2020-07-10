@@ -5,7 +5,6 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:datetime_picker_formfield/datetime_picker_formfield.dart';
 
 import 'package:guesture/models/event.dart';
-import 'package:guesture/models/g_user.dart';
 import 'package:guesture/providers/guesture_db.dart';
 import 'package:guesture/services/admob.dart';
 import 'package:intl/intl.dart';
@@ -25,18 +24,17 @@ class _AddEventScreenState extends State<AddEventScreen> {
   final _locationFocusNode = FocusNode();
   final _ticketPriceFocusNode = FocusNode();
   final _formKey = GlobalKey<FormState>();
-  DateTime _pickedDate;
-  TimeOfDay _pickedTime;
+
   InterstitialAd _interstitialAd;
   static const MobileAdTargetingInfo targetingInfo = MobileAdTargetingInfo(
     
-    testDevices: <String>[
-      'FDEA28183E85C0246AFC385DD539453C',
-      '08F97A3F50B1A9056804BEBB2AB80902',
-      '4A6014F8ED0B533145242BE3600EC087'
+    // testDevices: <String>[
+    //   'FDEA28183E85C0246AFC385DD539453C',
+    //   '08F97A3F50B1A9056804BEBB2AB80902',
+    //   '4A6014F8ED0B533145242BE3600EC087'
 
 
-    ],
+    // ],
     keywords: [
       'event',
       'management',
@@ -185,6 +183,8 @@ class _AddEventScreenState extends State<AddEventScreen> {
                       return 'Event Name cannot be empty!';
                     if (enteredEvent.length < 5)
                       return "Event Name is too short! (Min 5 chars)";
+                    if(enteredEvent.length >21)
+                      return "Event Name is too long! (Max 20 chars) ";
                     return null;
                   },
                 ),
@@ -208,12 +208,12 @@ class _AddEventScreenState extends State<AddEventScreen> {
                         firstDate: DateTime.now(),
                         lastDate: DateTime(2030));
                     if (date != null) {
-                      _pickedDate = date;
+                     
                       final time = await showTimePicker(
                           context: context,
                           initialTime: TimeOfDay.fromDateTime(
                               currentValue ?? DateTime.now()));
-                      _pickedTime = time;
+                    
                       return DateTimeField.combine(date, time);
                     } else
                       return currentValue;

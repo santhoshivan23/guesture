@@ -1,7 +1,4 @@
-import 'package:firebase_admob/firebase_admob.dart';
 import 'package:flutter/material.dart';
-import 'package:guesture/screens/new_reservation_screen.dart';
-import 'package:guesture/services/admob.dart';
 import 'package:guesture/widgets/event_overview_card.dart';
 import 'package:guesture/widgets/reservation_counter.dart';
 

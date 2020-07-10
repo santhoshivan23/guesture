@@ -1,4 +1,3 @@
-import 'package:bubbled_navigation_bar/bubbled_navigation_bar.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -30,12 +29,13 @@ class _EventOverviewScreenState extends State<EventOverviewScreen> {
     final eventName = eventData['eventName'];
     final bool isAdmin = eventData['isAdmin'];
     final myUid  = eventData['myUid'];
+    final creatorUid = eventData['creatorUid'];
      List<Widget> screens = [
             DashboardSubScreen(eventID: eventID,),
             ReservationsSubScreen(eventID: eventID,isAdmin: isAdmin,myUid: myUid,eventName : eventData['eventName']),
             CheckinSubscreen(eventID: eventID),
             FinanceSubscreen(eventID: eventID,isAdmin: isAdmin,),
-            MyWorkspaceSubscreen(eventID : eventID, isAdmin:isAdmin,eventName: eventName,),
+            MyWorkspaceSubscreen(eventID : eventID, isAdmin:isAdmin,eventName: eventName, creatorUid : creatorUid),
           ];
     
 

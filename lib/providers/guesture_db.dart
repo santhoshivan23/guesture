@@ -8,7 +8,6 @@ import 'package:guesture/models/g_notification.dart';
 import 'package:guesture/models/g_user.dart';
 import 'package:guesture/models/guest.dart';
 import 'package:guesture/models/transaction.dart';
-import 'package:guesture/models/workspace_member.dart';
 import '../models/event.dart';
 
 class GuestureDB {
@@ -315,7 +314,7 @@ class GuestureDB {
     if (uid == eventRef.data['uid']) return 0;
     if (membersMap.containsKey(uid)) {
       if (newRole == 'REMOVE') {
-        if (eventRef.data['uid'] == uid) return 0;
+        
         membersMap.remove(uid);
       } else {
         membersMap[uid] = {

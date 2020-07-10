@@ -1,8 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:guesture/models/transaction.dart';
 
-import './guest.dart';
 
 class Event {
   String uid;
@@ -12,8 +10,7 @@ class Event {
   final TimeOfDay startTime;
   String inviteLinkA;
   String inviteLinkO;
-  List<Guest> guests;
-  List<GTransaction> transactions;
+  
   final double ticketPrice;
   final String location;
   double checkInFraction;
@@ -28,8 +25,7 @@ class Event {
     @required this.startTime,
     this.inviteLinkA,
     this.inviteLinkO,
-    this.guests,
-    this.transactions,
+    
     @required this.ticketPrice,
     @required this.location,
     this.checkInFraction,

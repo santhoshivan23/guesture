@@ -106,9 +106,12 @@ class _UserTileState extends State<UserTile> {
         Scaffold.of(context).showSnackBar(SnackBar(
           backgroundColor:
               role == 'Administrator' ? Colors.green : Colors.orange,
-          content: Text(
-            'Invited as $role',
-            textAlign: TextAlign.center,
+          content: Padding(
+            padding: const EdgeInsets.only(bottom : 50.0),
+            child: Text(
+              'Invited as $role',
+              textAlign: TextAlign.center,
+            ),
           ),
         ));
       },

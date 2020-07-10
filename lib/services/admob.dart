@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:firebase_admob/firebase_admob.dart';
 
 class AdMobService {
   String getAdMobAppId() {

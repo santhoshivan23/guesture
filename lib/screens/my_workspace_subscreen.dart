@@ -1,49 +1,89 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/material.dart';
-import 'package:guesture/models/g_user.dart';
 import 'package:guesture/models/workspace_member.dart';
-import 'package:guesture/providers/guesture_db.dart';
 import 'package:guesture/screens/invite_members_page.dart';
 import 'package:guesture/widgets/members_tile.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 
-class MyWorkspaceSubscreen extends StatelessWidget {
+class MyWorkspaceSubscreen extends StatefulWidget {
   final String eventID;
   final bool isAdmin;
   final String eventName;
-  int membersCount;
-  Map<String, dynamic> membersMap;
-  MyWorkspaceSubscreen({this.eventID, this.isAdmin, this.eventName,});
-  List<WorkspaceMember> members = [];
-  final GlobalKey<ScaffoldState> _key = GlobalKey<ScaffoldState>();
-  // Future<void> fetchGUsers() async {
-  //   final eventRef =
-  //       await Firestore.instance.collection('events').document(eventID).get();
-  //   Map<String, dynamic> membersMap = eventRef.data['members'];
-  //   final uids = membersMap.keys.toList();
-  //   for (var uid in uids) {
-  //     final gUser = await GuestureDB.getGUserFromUid(uid);
-  //     final role = await GuestureDB.getRole(uid, eventID);
-  //     final ticketsSold = await GuestureDB.getTicketsSoldByUid(uid, eventID);
+  final String creatorUid;
+  MyWorkspaceSubscreen({
+    this.eventID,
+    this.isAdmin,
+    this.eventName,
+    this.creatorUid,
+  });
 
-  //     members.add(
-  //         WorkspaceMember(gUser: gUser, role: role, ticketsSold: ticketsSold));
-  //   }
-  //   final me = await FirebaseAuth.instance.currentUser();
-  //   myUid = me.uid;
-  // }
+  @override
+  _MyWorkspaceSubscreenState createState() => _MyWorkspaceSubscreenState();
+}
+
+class _MyWorkspaceSubscreenState extends State<MyWorkspaceSubscreen> {
+  int membersCount;
+
+  Map<String, dynamic> membersMap;
+
+  List<WorkspaceMember> members = [];
+
+  final GlobalKey<ScaffoldState> _key = GlobalKey<ScaffoldState>();
+
+  Future<void> fetchGUsers() async {
+    final eventDoc = await Firestore.instance
+        .collection('events')
+        .document(widget.eventID)
+        .get();
+    Map<String, dynamic> imembersMap = eventDoc.data['members'];
+    List<WorkspaceMember> iMembers = [];
+    imembersMap.forEach(
+      (key, value) {
+        iMembers.add(
+          WorkspaceMember(
+            role: value['role'],
+            ticketsSold: value['ticketsSold'],
+            uid: key,
+          ),
+        );
+      },
+    );
+
+    members = iMembers;
+  }
+
+  Future<void> fetchGUsersR() async {
+    final eventDoc = await Firestore.instance
+        .collection('events')
+        .document(widget.eventID)
+        .get();
+    Map<String, dynamic> imembersMap = eventDoc.data['members'];
+    List<WorkspaceMember> iMembers = [];
+    imembersMap.forEach(
+      (key, value) {
+        iMembers.add(
+          WorkspaceMember(
+            role: value['role'],
+            ticketsSold: value['ticketsSold'],
+            uid: key,
+          ),
+        );
+      },
+    );
+    setState(() {
+      members = iMembers;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    int membersCount;
+  
     return Scaffold(
-      key : _key,
+      key: _key,
       body: StreamBuilder(
           stream: Firestore.instance
               .collection('events')
-              .document(eventID)
+              .document(widget.eventID)
               .snapshots(),
           builder: (context, snapshot) {
             print(snapshot.connectionState);
@@ -52,48 +92,55 @@ class MyWorkspaceSubscreen extends StatelessWidget {
                 backgroundColor: Colors.green,
               );
             }
-            
-            membersMap = (snapshot.data['members'] as Map<String, dynamic>);
-            membersCount = membersMap.length;
-            membersMap.forEach((key, value) {
-              members.add(WorkspaceMember(
-                uid: key,
-                role: value['role'],
-                ticketsSold:
-                    value['ticketsSold'] == null ? 0 : value['ticketsSold'],
-              
-              ));
+            membersMap = snapshot.data['members'];
+             members = [];
+            membersMap.forEach(
+              (key, value) {
+                members.add(
+                  WorkspaceMember(
+                    role: value['role'],
+                    ticketsSold: value['ticketsSold'],
+                    uid: key,
+                  ),
+                );
+              },
+            );
+            members.sort((WorkspaceMember a, WorkspaceMember b ){
+              return (a.role == 'admin' && b.role != 'admin') ?  0 : 1;
             });
-            members.sort((WorkspaceMember a, WorkspaceMember b) => (a.role == 'admin' && b.role != 'admin') ? 0 : 1);
-
             return ListView.builder(
-              physics: BouncingScrollPhysics(),
-              itemCount: membersMap.length,
+              physics: const BouncingScrollPhysics(),
+              itemCount: members.length,
               itemBuilder: (ctx, index) => MembersTile(
                 member: members[index],
-                eventID: eventID,
-             
-                eventName: eventName,
-                isAdmin: isAdmin,
-
+                eventID: widget.eventID,
+                eventName: widget.eventName,
+                isAdmin: widget.isAdmin,
+                creatorUid: widget.creatorUid,
               ),
             );
           }),
-      floatingActionButton: isAdmin
+      floatingActionButton: widget.isAdmin
           ? FloatingActionButton.extended(
               backgroundColor: Colors.deepPurple,
               icon: Icon(MdiIcons.plusCircleMultiple),
               onPressed: () {
-                
-                if(membersCount >= 6) {
-                  _key.currentState.showSnackBar(SnackBar(content: Text('Maximum no. of members reached. (6)',textAlign: TextAlign.center,),),);
+                if (members.length >= 6) {
+                  _key.currentState.showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Maximum no. of members reached. (6)',
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  );
                   return;
                 }
-                Navigator.of(context).pushReplacementNamed(
+                Navigator.of(context).pushNamed(
                     InviteMembersPage.routeName,
                     arguments: {
-                      'eventID': eventID,
-                      'eventName': eventName,
+                      'eventID': widget.eventID,
+                      'eventName': widget.eventName,
                     });
               },
               label: Text('Invite People'))

@@ -2,17 +2,21 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:guesture/models/g_notification.dart';
 import 'package:guesture/models/g_user.dart';
-import 'package:guesture/models/guest.dart';
 import 'package:guesture/providers/guesture_db.dart';
-import 'package:guesture/widgets/guesture_avatar.dart';
 import 'package:intl/intl.dart';
 import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:provider/provider.dart';
 
-class NotificationsScreen extends StatelessWidget {
+class NotificationsScreen extends StatefulWidget {
   static const routeName = '/notifications';
-  final GlobalKey<ScaffoldState> _key = GlobalKey<ScaffoldState>();
 
+  @override
+  _NotificationsScreenState createState() => _NotificationsScreenState();
+}
+
+class _NotificationsScreenState extends State<NotificationsScreen> {
+  final GlobalKey<ScaffoldState> _key = GlobalKey<ScaffoldState>();
+  bool loading = false;
   @override
   Widget build(BuildContext context) {
     final uid = ModalRoute.of(context).settings.arguments as String;
@@ -30,7 +34,15 @@ class NotificationsScreen extends StatelessWidget {
           ),
           actions: [
             FlatButton.icon(
-                onPressed: () => GuestureDB.clearNotifs(uid),
+                onPressed: () async {
+                  setState(() {
+                    loading = true;
+                  });
+                 await  GuestureDB.clearNotifs(uid);
+                 setState(() {
+                   loading = false;
+                 });
+                },
                 icon: Icon(
                   Icons.clear_all,
                   color: Colors.white,
@@ -41,56 +53,60 @@ class NotificationsScreen extends StatelessWidget {
                 ))
           ],
         ),
-        body: FutureBuilder(
-            future: GuestureDB.resetNotifCounter(uid),
-            builder: (ctx, snap) {
-              if (snap.connectionState == ConnectionState.waiting)
-                return LinearProgressIndicator(
-                  backgroundColor: Colors.white,
-                );
-              return StreamBuilder(
-                stream: Firestore.instance
-                    .collection('users')
-                    .document(uid)
-                    .collection('notifications')
-                    .orderBy('timestamp', descending: true)
-                    .limit(10)
-                    .snapshots(),
-                builder: (ctx, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting)
-                    return Center(child: CircularProgressIndicator());
-                  final notifs =
-                      (snapshot.data.documents as List<DocumentSnapshot>)
-                          .map((e) => GNotification(
-                                id: e.documentID,
-                                type: e.data['type'],
-                                title: e.data['title'],
-                                content: e.data['content'],
-                                eventID: e.data['eventID'],
-                                role: e.data['role'],
-                                timestamp: e.data['timestamp'],
-                                sender: e.data['sender'],
-                              ))
-                          .toList();
-                  if (notifs.length == 0)
-                    return Center(
-                        child: Text(
-                      "You have no notifications!",
-                      style: TextStyle(color: Colors.black),
-                    ));
+        body: loading
+            ? Center(
+                child: CircularProgressIndicator(),
+              )
+            : FutureBuilder(
+                future: GuestureDB.resetNotifCounter(uid),
+                builder: (ctx, snap) {
+                  if (snap.connectionState == ConnectionState.waiting)
+                    return LinearProgressIndicator(
+                      backgroundColor: Colors.white,
+                    );
+                  return StreamBuilder(
+                    stream: Firestore.instance
+                        .collection('users')
+                        .document(uid)
+                        .collection('notifications')
+                        .orderBy('timestamp', descending: true)
+                        .limit(10)
+                        .snapshots(),
+                    builder: (ctx, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting)
+                        return Center(child: CircularProgressIndicator());
+                      final notifs =
+                          (snapshot.data.documents as List<DocumentSnapshot>)
+                              .map((e) => GNotification(
+                                    id: e.documentID,
+                                    type: e.data['type'],
+                                    title: e.data['title'],
+                                    content: e.data['content'],
+                                    eventID: e.data['eventID'],
+                                    role: e.data['role'],
+                                    timestamp: e.data['timestamp'],
+                                    sender: e.data['sender'],
+                                  ))
+                              .toList();
+                      if (notifs.length == 0)
+                        return Center(
+                            child: Text(
+                          "You have no notifications!",
+                          style: TextStyle(color: Colors.black),
+                        ));
 
-                  return ListView.builder(
-                      itemCount: notifs.length,
-                      itemBuilder: (ctx, index) => Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: GNotificationTile(
-                              notification: notifs[index],
-                              uid: uid,
-                            ),
-                          ));
-                },
-              );
-            }));
+                      return ListView.builder(
+                          itemCount: notifs.length,
+                          itemBuilder: (ctx, index) => Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: GNotificationTile(
+                                  notification: notifs[index],
+                                  uid: uid,
+                                ),
+                              ));
+                    },
+                  );
+                }));
   }
 }
 
@@ -109,7 +125,7 @@ class GNotificationTile extends StatefulWidget {
 
 class _GNotificationTileState extends State<GNotificationTile> {
   bool loading = false;
-  
+
   Future<void> handleClick(
     String uid,
     GNotification notification,
@@ -122,7 +138,7 @@ class _GNotificationTileState extends State<GNotificationTile> {
 
     if (accept) {
       try {
-        final res = await GuestureDB.updateRole(
+        await GuestureDB.updateRole(
             uid, notification.eventID, notification.role);
       } catch (err) {
         Scaffold.of(context).showSnackBar(SnackBar(
@@ -145,15 +161,20 @@ class _GNotificationTileState extends State<GNotificationTile> {
           ),
         ),
       );
-      final name = gUser.displayName == null ? gUser.email.split('@')[0] : gUser.displayName;
-      await GuestureDB.pushNotification(GNotification(
-        title: 'Invitation Accepted',
-        content: '$name accepted your invite to join the workspace.',
-        type: 'others',
-      ), [notification.sender]);
-
+      final name = gUser.displayName == null
+          ? gUser.email.split('@')[0]
+          : gUser.displayName;
+      await GuestureDB.pushNotification(
+          GNotification(
+            title: 'Invitation Accepted',
+            content: '$name accepted your invite to join the workspace.',
+            type: 'others',
+            timestamp: DateTime.now().toIso8601String(),
+            
+          ),
+          [notification.sender]);
     } else {
-      final res =
+      
           await GuestureDB.updateRole(uid, notification.eventID, 'REMOVE');
       Scaffold.of(context).showSnackBar(SnackBar(
         backgroundColor: Colors.red,
@@ -166,16 +187,17 @@ class _GNotificationTileState extends State<GNotificationTile> {
         ),
       ));
     }
-    await GuestureDB.deleteNotification(uid, notification.id);
-
     setState(() {
       loading = false;
     });
+    await GuestureDB.deleteNotification(uid, notification.id);
+
+    
   }
-  
+
   @override
   Widget build(BuildContext context) {
-    final height = MediaQuery.of(context).size.height;
+    
     final user = Provider.of<GUser>(context);
     return loading
         ? Center(
@@ -228,11 +250,7 @@ class _GNotificationTileState extends State<GNotificationTile> {
                         style: TextStyle(color: Colors.white),
                       ),
                       onPressed: () => handleClick(
-                        widget.uid,
-                        widget.notification,
-                        true,
-                        user
-                      ),
+                          widget.uid, widget.notification, true, user),
                     ),
                     RaisedButton(
                         shape: RoundedRectangleBorder(
@@ -243,11 +261,7 @@ class _GNotificationTileState extends State<GNotificationTile> {
                           style: TextStyle(color: Colors.white),
                         ),
                         onPressed: () => handleClick(
-                              widget.uid,
-                              widget.notification,
-                              false,
-                              null
-                            )),
+                            widget.uid, widget.notification, false, null)),
                   ],
                 ),
               Divider(
