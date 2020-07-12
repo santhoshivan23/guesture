@@ -19,8 +19,8 @@ class EventOverviewCard extends StatelessWidget {
   EventOverviewCard({this.eventID});
   @override
   Widget build(BuildContext context) {
+    final height = MediaQuery.of(context).size.height;
     
-    print(MediaQuery.of(context).size.height);
     return StreamBuilder(
       stream: Firestore.instance.collection('events').document(eventID).snapshots(),
       builder: (context, snapshot) {
@@ -52,7 +52,7 @@ class EventOverviewCard extends StatelessWidget {
               ),
               Container(
                 width: double.infinity,
-                padding: EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+                padding: EdgeInsets.symmetric(vertical: height * 0.012, horizontal: height * 0.001),
                 
                 color: Colors.indigo,
                 child: Text(
@@ -80,8 +80,10 @@ class EventOverviewCard extends StatelessWidget {
                       Text(getMonth(DateTime.parse(snapshot.data['startDT'])) + '  '),
                     ],
                   ),
-                  trailing: Padding(
-                    padding: const EdgeInsets.all(8.0),
+                  trailing: 
+                  DateTime.now().subtract(Duration(hours: 1)).isBefore(DateTime.parse(snapshot.data['startDT'])) ?
+                   Padding(
+                    padding:  EdgeInsets.all(height * 0.001),
                     child: Column(
                       children: <Widget>[
                         Text(
@@ -98,7 +100,7 @@ class EventOverviewCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                  ),
+                  ) : SizedBox(width: height * 0.083,),
                 ),
               ),
               Card(
@@ -117,8 +119,8 @@ class EventOverviewCard extends StatelessWidget {
                     getTime(TimeOfDay.fromDateTime(DateTime.parse(snapshot.data['startDT']))),
                     textAlign: TextAlign.center,
                   ),
-                  trailing: Padding(
-                    padding: const EdgeInsets.all(8.0),
+                  trailing:   DateTime.now().subtract(Duration(hours: 1)).isBefore(DateTime.parse(snapshot.data['startDT'])) ?Padding(
+                    padding:  EdgeInsets.all(height * 0.009),
                     child: Column(
                       children: <Widget>[
                         Text(
@@ -135,7 +137,7 @@ class EventOverviewCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                  ),
+                  ) : SizedBox(width: height * 0.083,),
                 ),
               ),
               Card(
@@ -155,7 +157,7 @@ class EventOverviewCard extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                   trailing: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal : 15.0),
+                    padding:  EdgeInsets.symmetric(horizontal : height * 0.018),
                     child: Text(
                       snapshot.data['ticketPrice'].toString(),
                       
@@ -180,7 +182,7 @@ class EventOverviewCard extends StatelessWidget {
                     textAlign: TextAlign.center,
                   ),
                   trailing: SizedBox(
-                    width: 62,
+                    width: height * 0.073,
                   ),
                 ),
               ),

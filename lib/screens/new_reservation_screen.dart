@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:guesture/models/guest.dart';
 import 'package:guesture/screens/cash_confirm_screen.dart';
+import 'package:material_design_icons_flutter/material_design_icons_flutter.dart';
 import 'package:random_string/random_string.dart';
 
 class NewReservationScreen extends StatefulWidget {
@@ -20,8 +21,6 @@ class _NewReservationScreenState extends State<NewReservationScreen> {
   final _formKey = GlobalKey<FormState>();
   bool _switchStateGender = true;
 
-  bool _switchStatePMode = true;
-
   var _processingGuest = Guest(
     gAllowance: null,
     gEmailID: null,
@@ -38,13 +37,12 @@ class _NewReservationScreenState extends State<NewReservationScreen> {
     });
   }
 
-  void _switchTogglePMode(bool val) {
-    setState(() {
-      _switchStatePMode = val;
-    });
-  }
-
-  void _fabClicked(context, String eventID) {
+  void _fabClicked(
+    context,
+    String eventID,
+    String myUid,
+    String eventName,
+  ) {
     if (!_formKey.currentState.validate()) return;
     _formKey.currentState.save();
     _processingGuest = Guest(
@@ -56,29 +54,38 @@ class _NewReservationScreenState extends State<NewReservationScreen> {
       gAllowance: _processingGuest.gAllowance,
       gGender: _switchStateGender ? 'M' : 'F',
       gEventID: _processingGuest.gEventID,
+      reservedBy: myUid,
     );
 
-   
-    Navigator.of(context)
-        .pushNamed(CashConfirmScreen.routeName, arguments: {
-          'guest' :_processingGuest,
-          'eventID' : eventID,
-          });
+    Navigator.of(context).pushNamed(CashConfirmScreen.routeName, arguments: {
+      'guest': _processingGuest,
+      'eventID': eventID,
+      'eventName': eventName,
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final eventID = ModalRoute.of(context).settings.arguments as String;
+    final args =
+        ModalRoute.of(context).settings.arguments as Map<String, String>;
+    final String eventID = args['eventID'];
+    final String myUid = args['myUid'];
+    final String eventName = args['eventName'];
+
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: Colors.deepPurple,
         title: const Text('New Reservation'),
         centerTitle: true,
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.green,
-        onPressed: () => _fabClicked(context, eventID),
-        child: Icon(Icons.arrow_forward),
+        actions: [
+          IconButton(
+            icon: Icon(
+              Icons.done,
+              color: Colors.white,
+            ),
+            onPressed: () => _fabClicked(context, eventID, myUid, eventName),
+          )
+        ],
       ),
       body: SingleChildScrollView(
         child: Form(
@@ -96,6 +103,10 @@ class _NewReservationScreenState extends State<NewReservationScreen> {
                     FocusScope.of(context).requestFocus(_guestEmailIDFocusNode);
                   },
                   decoration: InputDecoration(
+                    prefixIcon: Icon(
+                      MdiIcons.account,
+                      color: Colors.pink,
+                    ),
                     labelText: 'Full Name',
                     labelStyle: GoogleFonts.notoSans(),
                   ),
@@ -131,7 +142,17 @@ class _NewReservationScreenState extends State<NewReservationScreen> {
                   decoration: InputDecoration(
                     labelText: 'Email ID',
                     labelStyle: GoogleFonts.notoSans(),
+                    prefixIcon: Icon(
+                      MdiIcons.email,
+                      color: Colors.pink,
+                    ),
                   ),
+                  validator: (email) {
+                    if (!RegExp(
+                            r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+")
+                        .hasMatch(email)) return "Enter a valid email";
+                    return null;
+                  },
                   onSaved: (val) {
                     _processingGuest = Guest(
                       gName: _processingGuest.gName,
@@ -155,6 +176,10 @@ class _NewReservationScreenState extends State<NewReservationScreen> {
                   decoration: InputDecoration(
                     labelText: 'Organization',
                     labelStyle: GoogleFonts.notoSans(),
+                    prefixIcon: Icon(
+                      MdiIcons.officeBuilding,
+                      color: Colors.pink,
+                    ),
                   ),
                   onFieldSubmitted: (_) {
                     FocusScope.of(context)
@@ -190,6 +215,10 @@ class _NewReservationScreenState extends State<NewReservationScreen> {
                   decoration: InputDecoration(
                     labelText: 'Mobile Number',
                     labelStyle: GoogleFonts.notoSans(),
+                    prefixIcon: Icon(
+                      MdiIcons.phone,
+                      color: Colors.pink,
+                    ),
                   ),
                   keyboardType: TextInputType.number,
                   validator: (enteredMN) {
@@ -225,11 +254,16 @@ class _NewReservationScreenState extends State<NewReservationScreen> {
                   decoration: InputDecoration(
                     labelText: 'Allowance',
                     labelStyle: GoogleFonts.notoSans(),
+                    prefixIcon: Icon(
+                      Icons.people,
+                      color: Colors.pink,
+                    ),
                   ),
                   keyboardType: TextInputType.number,
                   validator: (val) {
                     if (val.isEmpty) return 'Allowances can\'t be empty';
                     if (int.parse(val) == 0) return 'Allowance can\'t be 0';
+                    return null;
                   },
                   onSaved: (val) {
                     _processingGuest = Guest(
@@ -247,36 +281,33 @@ class _NewReservationScreenState extends State<NewReservationScreen> {
               Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                
-                    child :Center(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: <Widget>[
-                          Text(
-                            'Female',
-                            style: TextStyle(
-                                fontWeight: _switchStateGender
-                                    ? FontWeight.w300
-                                    : FontWeight.w600),
-                          ),
-                          Switch(
-                              inactiveThumbColor: Colors.pink,
-                              value: _switchStateGender,
-                              onChanged: (val) {
-                                _switchToggleGender(val);
-                              }),
-                          Text(
-                            'Male',
-                            style: TextStyle(
-                                fontWeight: _switchStateGender
-                                    ? FontWeight.w600
-                                    : FontWeight.w300),
-                          )
-                        ],
+                child: Center(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Text(
+                        'Female',
+                        style: TextStyle(
+                            fontWeight: _switchStateGender
+                                ? FontWeight.w300
+                                : FontWeight.w600),
                       ),
-                    ),
-                    
-                  
+                      Switch(
+                          inactiveThumbColor: Colors.pink,
+                          value: _switchStateGender,
+                          onChanged: (val) {
+                            _switchToggleGender(val);
+                          }),
+                      Text(
+                        'Male',
+                        style: TextStyle(
+                            fontWeight: _switchStateGender
+                                ? FontWeight.w600
+                                : FontWeight.w300),
+                      )
+                    ],
+                  ),
+                ),
               )
             ],
           ),

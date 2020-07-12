@@ -15,6 +15,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "841700139674-0l6h67r2chml8ldv4fc2ucvs6sbveu2p.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.santhoshivan.guesture",
+            "certificate_hash": "9737be0f4ccb3cafb8c305954b544a013ec6f7e5"
+          }
+        },
+        {
           "client_id": "841700139674-gppticnc7hr7vi2tqm4p4uv4ta6pu4hg.apps.googleusercontent.com",
           "client_type": 3
         }

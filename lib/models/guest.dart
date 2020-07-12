@@ -8,6 +8,7 @@ class Guest {
   final String gEmailID;
   final String gGender;
   final String gOrg;
+  final String reservedBy;
   final int gAllowance;
   bool isCheckedIn;
 
@@ -20,6 +21,7 @@ class Guest {
    @required this.gGender,
    @required this.gOrg,
    @required this.gAllowance,
+   this.reservedBy,
    this.isCheckedIn = false,
 
   });

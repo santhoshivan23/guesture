@@ -10,6 +10,7 @@ import '../models/transaction.dart' as tx;
 class GuestTile extends StatefulWidget {
   final String gID;
   final String eventID;
+  final String eventName;
   final String gName;
   final String gMobileNumber;
   final String gEmailID;
@@ -21,6 +22,7 @@ class GuestTile extends StatefulWidget {
 
   GuestTile(
       {this.gID,
+      this.eventName,
       this.eventID,
       this.gName,
       this.gMobileNumber,
@@ -37,12 +39,17 @@ class GuestTile extends StatefulWidget {
 
 class _GuestTileState extends State<GuestTile> {
   var _expanded = false;
+ 
+ 
 
   _callGuest(String guestPhone) async {
     final number = guestPhone;
-    bool res = await FlutterPhoneDirectCaller.callNumber(number);
+    await FlutterPhoneDirectCaller.callNumber(number);
   }
 
+
+  
+ 
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -155,10 +162,12 @@ class _GuestTileState extends State<GuestTile> {
                         ),
                       if (!widget.isCheckedIn)
                         RaisedButton.icon(
-                          onPressed: () {
+                          onPressed: () async {
+                           
                             Navigator.of(context)
                                 .pushNamed(QRScreen.routeName, arguments: {
                               'eventID': widget.eventID,
+                              'eventName' : widget.eventName,
                               'guestData': Guest(
                                   gAllowance: widget.gAllowance,
                                   gEmailID: widget.gEmailID,
