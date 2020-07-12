@@ -117,6 +117,7 @@ class _MyWorkspaceSubscreenState extends State<MyWorkspaceSubscreen> {
                 eventName: widget.eventName,
                 isAdmin: widget.isAdmin,
                 creatorUid: widget.creatorUid,
+                count : members.length,
               ),
             );
           }),

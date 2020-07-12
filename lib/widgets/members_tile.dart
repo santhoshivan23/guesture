@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:guesture/models/g_notification.dart';
 import 'package:guesture/models/g_user.dart';
@@ -12,17 +13,31 @@ class MembersTile extends StatelessWidget {
   final String eventName;
   final bool isAdmin;
   final String creatorUid;
+  final int count;
 
-  MembersTile(
-      {this.member,
-      this.eventID,
-      this.eventName,
-      this.isAdmin,
-      this.creatorUid});
+  MembersTile({
+    this.member,
+    this.eventID,
+    this.eventName,
+    this.isAdmin,
+    this.creatorUid,
+    this.count,
+  });
 
   GUser gUser;
 
-  Future<void> _acceptInvite() async {
+  Future<void> _acceptInvite(BuildContext context) async {
+    if (count > 6) {
+      Scaffold.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Maximum no. of members reached. (6)',
+            textAlign: TextAlign.center,
+          ),
+        ),
+      );
+      return;
+    }
     if (member.role.contains('admin')) {
       await GuestureDB.updateRole(gUser.uid, eventID, 'admin');
     } else {
@@ -222,9 +237,9 @@ class MembersTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
- 
     final user = Provider.of<GUser>(context);
-    return member.role == 'removed' || (member.role.contains('requested') && !isAdmin)
+    return member.role == 'removed' ||
+            (member.role.contains('requested') && !isAdmin)
         ? Container()
         : FutureBuilder(
             future: getGUser(),
@@ -275,7 +290,7 @@ class MembersTile extends StatelessWidget {
                           ),
                         if (member.role.contains('requested') && isAdmin)
                           GestureDetector(
-                            onTap: _acceptInvite,
+                            onTap: () => _acceptInvite(context),
                             child: Container(
                               decoration: BoxDecoration(
                                 border: Border.all(color: Colors.green),
