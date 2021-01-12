@@ -10,7 +10,6 @@ import 'package:guesture/providers/guesture_db.dart';
 import 'package:guesture/screens/add_event_screen.dart';
 import 'package:guesture/screens/notifications_screen.dart';
 import 'package:guesture/screens/profile_page.dart';
-import 'package:guesture/services/admob.dart';
 import 'package:guesture/widgets/event_tile.dart';
 import 'package:guesture/widgets/guesture_avatar.dart';
 import 'package:guesture/widgets/notif_counter.dart';
@@ -31,51 +30,10 @@ class _MyEventsScreenState extends State<MyEventsScreen> {
   var _filterindex = 0;
   BannerAd _bannerAd;
   final _key = GlobalKey<ScaffoldState>();
-  final ams = AdMobService();
-  
-  static const MobileAdTargetingInfo targetingInfo = MobileAdTargetingInfo(
-    // testDevices: <String>[
-    //   'FDEA28183E85C0246AFC385DD539453C',
-    //   '08F97A3F50B1A9056804BEBB2AB80902',
-    //   '4A6014F8ED0B533145242BE3600EC087'
-    // ],
-    keywords: [
-      'event',
-      'management',
-      'hotels',
-      'bookings',
-      'tour',
-      'flights',
-      'shopping',
-      'trains',
-      'government',
-      'cars',
-      'travel'
-    ],
-  );
   @override
   void initState() {
     fetchLinkData();
-    _bannerAd = BannerAd(
-        adUnitId: ams.getBannerAdId(),
-        size: AdSize.banner,
-        targetingInfo: targetingInfo);
-    loadbannerAd();
-
     super.initState();
- 
-  }
-
-  void loadbannerAd() {
-    _bannerAd
-      ..load()
-      ..show();
-  }
-
-  @override
-  void dispose() {
-    _bannerAd.dispose();
-    super.dispose();
   }
 
   void fetchLinkData() async {
@@ -346,7 +304,7 @@ class GuestureDrawer extends StatelessWidget {
   final GlobalKey<ScaffoldState> homeKey;
   GuestureDrawer({this.homeKey});
 
-   void _toPrivacyPolicy() async {
+  void _toPrivacyPolicy() async {
     const url =
         'https://github.com/santhoshivan23/guesture_privacy_policy/blob/master/privacy_policy.txt';
     if (await canLaunch(url)) {
@@ -355,6 +313,7 @@ class GuestureDrawer extends StatelessWidget {
       return;
     }
   }
+
   @override
   Widget build(BuildContext context) {
     final height = MediaQuery.of(context).size.height;
@@ -395,12 +354,11 @@ class GuestureDrawer extends StatelessWidget {
                             : gUser.displayName,
                         textAlign: TextAlign.center,
                       ),
-                      subtitle:Text(
-                          gUser.email,
-                          textAlign: TextAlign.center,
-                          style: TextStyle(fontSize: 12),
-                        ),
-                      
+                      subtitle: Text(
+                        gUser.email,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 12),
+                      ),
                     ),
                   ],
                 ),
@@ -507,9 +465,9 @@ class GuestureDrawer extends StatelessWidget {
                 height: 1,
               ),
               ListTile(
-                onTap: ()   {
+                onTap: () {
                   Navigator.of(context).pop();
-                   _toPrivacyPolicy();
+                  _toPrivacyPolicy();
                 },
                 leading: Icon(MdiIcons.security, color: Colors.green),
                 title: Text(

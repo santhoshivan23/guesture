@@ -18,9 +18,6 @@ class EventOverviewScreen extends StatefulWidget {
 class _EventOverviewScreenState extends State<EventOverviewScreen> {
   var selectedIndex = 0;
 
-
-  
-
   @override
   Widget build(BuildContext context) {
     final eventData =
@@ -28,16 +25,28 @@ class _EventOverviewScreenState extends State<EventOverviewScreen> {
     final eventID = eventData['eventID'];
     final eventName = eventData['eventName'];
     final bool isAdmin = eventData['isAdmin'];
-    final myUid  = eventData['myUid'];
+    final myUid = eventData['myUid'];
     final creatorUid = eventData['creatorUid'];
-     List<Widget> screens = [
-            DashboardSubScreen(eventID: eventID,),
-            ReservationsSubScreen(eventID: eventID,isAdmin: isAdmin,myUid: myUid,eventName : eventData['eventName']),
-            CheckinSubscreen(eventID: eventID),
-            FinanceSubscreen(eventID: eventID,isAdmin: isAdmin,),
-            MyWorkspaceSubscreen(eventID : eventID, isAdmin:isAdmin,eventName: eventName, creatorUid : creatorUid),
-          ];
-    
+    List<Widget> screens = [
+      DashboardSubScreen(
+        eventID: eventID,
+      ),
+      ReservationsSubScreen(
+          eventID: eventID,
+          isAdmin: isAdmin,
+          myUid: myUid,
+          eventName: eventData['eventName']),
+      CheckinSubscreen(eventID: eventID),
+      FinanceSubscreen(
+        eventID: eventID,
+        isAdmin: isAdmin,
+      ),
+      MyWorkspaceSubscreen(
+          eventID: eventID,
+          isAdmin: isAdmin,
+          eventName: eventName,
+          creatorUid: creatorUid),
+    ];
 
     return Scaffold(
       appBar: AppBar(
@@ -53,52 +62,43 @@ class _EventOverviewScreenState extends State<EventOverviewScreen> {
         ),
       ),
       body: screens.elementAt(selectedIndex),
-      
-      bottomNavigationBar: Padding(
-        padding: const EdgeInsets.only(bottom :52.0),
-        child: BottomNavigationBar(
-
+      bottomNavigationBar: BottomNavigationBar(
           onTap: (index) {
-             setState(() {
-               selectedIndex = index;
-             });
+            setState(() {
+              selectedIndex = index;
+            });
           },
-          
           unselectedItemColor: Colors.deepPurple,
           showUnselectedLabels: true,
-          
           fixedColor: Colors.deepPurple,
           currentIndex: selectedIndex,
           items: [
-          BottomNavigationBarItem(
-            activeIcon:Icon(MdiIcons.information),
-            icon: Icon(MdiIcons.informationOutline),
-            title: Text('Dashboard'),
-            backgroundColor: Colors.white
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.people_outline),
-            activeIcon: Icon(Icons.people),
-            title: Text('Guests'),
-           
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(MdiIcons.sendCircleOutline),
-            activeIcon: Icon(MdiIcons.sendCircle),
-            title: Text('Check-In'),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(MdiIcons.walletOutline),
-            activeIcon: Icon(MdiIcons.wallet),
-            title: Text('Finance'),
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(MdiIcons.homeCityOutline),
-            activeIcon: Icon(MdiIcons.homeCity),
-            title: Text('Workspace'),
-          ),
-        ]),
-      ),
+            BottomNavigationBarItem(
+                activeIcon: Icon(MdiIcons.information),
+                icon: Icon(MdiIcons.informationOutline),
+                title: Text('Dashboard'),
+                backgroundColor: Colors.white),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.people_outline),
+              activeIcon: Icon(Icons.people),
+              title: Text('Guests'),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(MdiIcons.sendCircleOutline),
+              activeIcon: Icon(MdiIcons.sendCircle),
+              title: Text('Check-In'),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(MdiIcons.walletOutline),
+              activeIcon: Icon(MdiIcons.wallet),
+              title: Text('Finance'),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(MdiIcons.homeCityOutline),
+              activeIcon: Icon(MdiIcons.homeCity),
+              title: Text('Workspace'),
+            ),
+          ]),
     );
   }
 }

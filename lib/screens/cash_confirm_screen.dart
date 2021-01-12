@@ -6,7 +6,6 @@ import 'package:guesture/models/guest.dart';
 import 'package:guesture/models/transaction.dart';
 import 'package:guesture/providers/guesture_db.dart';
 import 'package:guesture/screens/qr_screen.dart';
-import 'package:guesture/services/admob.dart';
 
 class CashConfirmScreen extends StatefulWidget {
   static const routeName = '/cash-confirm';
@@ -19,45 +18,12 @@ class _CashConfirmScreenState extends State<CashConfirmScreen> {
   Guest guestData;
   String eventID;
   String eventName;
-  InterstitialAd _interstitialAd;
   var init = false;
   var _loading = false;
-  final ams = AdMobService();
-  static const MobileAdTargetingInfo targetingInfo = MobileAdTargetingInfo(
-    // testDevices: <String>[
-    //   'FDEA28183E85C0246AFC385DD539453C',
-    //   '08F97A3F50B1A9056804BEBB2AB80902',
-    //   '4A6014F8ED0B533145242BE3600EC087'
-    // ],
-    keywords: [
-      'event',
-      'management',
-      'hotels',
-      'bookings',
-      'tour',
-      'flights',
-      'shopping',
-      'trains',
-      'government',
-      'cars',
-      'travel'
-    ],
-  );
 
   @override
   void initState() {
-    _interstitialAd = getInterstitalAd();
-    _interstitialAd..load();
     super.initState();
-  }
-
-  InterstitialAd getInterstitalAd() {
-    return InterstitialAd(
-        adUnitId: ams.getInterstitialAdId(),
-        targetingInfo: targetingInfo,
-        listener: (MobileAdEvent event) {
-          print(event);
-        });
   }
 
   @override
@@ -94,10 +60,6 @@ class _CashConfirmScreenState extends State<CashConfirmScreen> {
     setState(() {
       _loading = false;
     });
-    await _interstitialAd.show(
-        anchorType: AnchorType.bottom,
-        anchorOffset: 0.0,
-        horizontalCenterOffset: 0.0);
     Navigator.of(context).pushNamed(QRScreen.routeName, arguments: {
       'guestData': guestData,
       'eventID': eventID,
@@ -237,10 +199,8 @@ class _CashConfirmScreenState extends State<CashConfirmScreen> {
                     child: Icon(Icons.done),
                   ),
                 ),
-                SizedBox(height: height*0.02),
-                _loading
-                    ? CircularProgressIndicator()
-                    : Container()
+                SizedBox(height: height * 0.02),
+                _loading ? CircularProgressIndicator() : Container()
               ],
             ),
           ),
