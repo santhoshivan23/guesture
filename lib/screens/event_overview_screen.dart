@@ -76,27 +76,27 @@ class _EventOverviewScreenState extends State<EventOverviewScreen> {
             BottomNavigationBarItem(
                 activeIcon: Icon(MdiIcons.information),
                 icon: Icon(MdiIcons.informationOutline),
-                title: Text('Dashboard'),
+                label: 'Dashboard',
                 backgroundColor: Colors.white),
             BottomNavigationBarItem(
               icon: Icon(Icons.people_outline),
               activeIcon: Icon(Icons.people),
-              title: Text('Guests'),
+              label: 'Guests',
             ),
             BottomNavigationBarItem(
               icon: Icon(MdiIcons.sendCircleOutline),
               activeIcon: Icon(MdiIcons.sendCircle),
-              title: Text('Check-In'),
+              label: 'Check-In',
             ),
             BottomNavigationBarItem(
               icon: Icon(MdiIcons.walletOutline),
               activeIcon: Icon(MdiIcons.wallet),
-              title: Text('Finance'),
+              label: 'Finance',
             ),
             BottomNavigationBarItem(
               icon: Icon(MdiIcons.homeCityOutline),
               activeIcon: Icon(MdiIcons.homeCity),
-              title: Text('Workspace'),
+              label: 'Workspace',
             ),
           ]),
     );
